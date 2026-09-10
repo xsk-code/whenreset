@@ -112,43 +112,31 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
       {/* 8-bit Bowser Castle Alert Container */}
       <div
         className={cn(
-          "border-[3px] bg-mario-darkCard p-4 sm:p-6 md:p-8 shadow-pixel rounded-none transition-all",
+          "border-2 bg-mario-darkCard p-4 sm:p-6 md:p-8 shadow-pixel rounded-none transition-all",
           isCritical
             ? "border-mario-red animate-castle-pulse"
             : "border-black"
         )}
       >
         {/* Header Ribbon */}
-        <div className="flex flex-wrap items-center justify-between border-b-2 border-black pb-4 mb-6 gap-3">
+        <div className="flex flex-wrap items-center justify-between border-b border-zinc-800/80 pb-4 mb-6 gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-2xl select-none animate-pixel-blink">🏰</span>
+            <span className="text-2xl select-none">🏰</span>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-pixel text-xs sm:text-sm md:text-base text-mario-red">
+                <h2 className="font-pixel text-xs sm:text-sm md:text-base text-red-400">
                   {t.watch.title}
                 </h2>
-                <span
-                  className={cn(
-                    "font-pixel text-[9px] sm:text-[10px] px-2 py-0.5 border border-black shadow-pixel-sm rounded-none",
-                    isCritical
-                      ? "bg-mario-red text-white animate-pixel-blink"
-                      : isElevated
-                      ? "bg-mario-coin text-black"
-                      : "bg-mario-green text-black"
-                  )}
-                >
-                  {t.watch.stageTag}
-                </span>
               </div>
-              <p className="font-mono text-[11px] text-gray-400 mt-1">
+              <p className="font-mono text-[11px] text-zinc-400 mt-1">
                 {t.watch.subtitle}
               </p>
             </div>
           </div>
 
           {/* Castle Threat Status Badge */}
-          <div className="flex items-center gap-2 border-2 border-black bg-[#0F111A] px-3 py-1.5 shadow-pixel-sm rounded-none">
-            <span className="w-2.5 h-2.5 bg-mario-red animate-pixel-blink inline-block" />
+          <div className="flex items-center gap-2 border-2 border-black bg-[#141622] px-3 py-1.5 shadow-pixel-sm rounded-none">
+            <span className="w-2 h-2 bg-red-400 animate-pixel-blink inline-block" />
             <span className={cn("font-pixel text-[10px] sm:text-xs", threatColor)}>
               {threatLabel}
             </span>
@@ -156,11 +144,11 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
         </div>
 
         {/* Dynamic Probability & Castle Radar Gauge */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center border-b-2 border-black pb-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center border-b border-zinc-800/80 pb-6 mb-6">
           {/* Left Column: Big Percentage Display */}
-          <div className="lg:col-span-5 bg-[#0F111A] border-2 border-black p-4 sm:p-5 shadow-pixel-sm flex flex-col items-center justify-center text-center">
-            <div className="flex items-center gap-2 text-xs font-pixel text-gray-400 mb-2">
-              <Flame size={15} className="text-mario-red animate-bounce" />
+          <div className="lg:col-span-5 bg-[#141622] border-2 border-black p-4 sm:p-5 shadow-pixel-sm flex flex-col items-center justify-center text-center">
+            <div className="flex items-center gap-2 text-xs font-pixel text-zinc-400 mb-2">
+              <Flame size={15} className="text-red-400" />
               <span>{t.watch.refreshProbability}</span>
             </div>
 
@@ -169,61 +157,37 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
                 className={cn(
                   "font-pixel text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight",
                   isCritical
-                    ? "text-mario-red"
+                    ? "text-red-400"
                     : isElevated
-                    ? "text-mario-coin"
-                    : "text-mario-green"
+                    ? "text-amber-400"
+                    : "text-emerald-400"
                 )}
               >
                 {probability}%
               </span>
-              <span className="font-pixel text-sm sm:text-base text-gray-400">
+              <span className="font-pixel text-sm sm:text-base text-zinc-400">
                 {t.watch.chance}
               </span>
             </div>
 
-            <p className="font-mono text-xs text-gray-300 mt-2 max-w-xs leading-relaxed">
+            <p className="font-mono text-xs text-zinc-300 mt-2 max-w-xs leading-relaxed">
               {isCritical
                 ? t.watch.criticalDesc
                 : isElevated
                 ? t.watch.elevatedDesc
                 : t.watch.lowDesc}
             </p>
-
-            {/* Quick Metrics Bar Under Big Chance */}
-            <div className="mt-4 pt-3 border-t border-gray-800 w-full flex items-center justify-around font-mono text-[11px] text-gray-400">
-              <div>
-                <span className="text-gray-500 block">{t.watch.elapsed}</span>
-                <span className="text-white font-bold font-pixel text-[10px]">
-                  {stats.days_since_last.toFixed(1)}d
-                </span>
-              </div>
-              <div className="h-6 w-px bg-gray-800" />
-              <div>
-                <span className="text-gray-500 block">{t.watch.avgCadence}</span>
-                <span className="text-mario-coin font-bold font-pixel text-[10px]">
-                  ~{stats.avg_interval_days.toFixed(1)}d
-                </span>
-              </div>
-              <div className="h-6 w-px bg-gray-800" />
-              <div>
-                <span className="text-gray-500 block">{t.watch.maxRecord}</span>
-                <span className="text-mario-red font-bold font-pixel text-[10px]">
-                  {stats.longest_wait_days.toFixed(1)}d
-                </span>
-              </div>
-            </div>
           </div>
 
           {/* Right Column: 8-Bit Castle Radar Intel Breakdown */}
           <div className="lg:col-span-7 flex flex-col justify-between h-full space-y-4">
             {/* Probability Progress Bar */}
             <div>
-              <div className="flex items-center justify-between font-pixel text-[10px] text-gray-300 mb-2">
+              <div className="flex items-center justify-between font-pixel text-[10px] text-zinc-300 mb-2">
                 <span>{t.watch.radarGauge}</span>
                 <span className={threatColor}>{probability}% / 100%</span>
               </div>
-              <div className="h-6 w-full border-[3px] border-black bg-[#0F111A] p-0.5 shadow-pixel-sm rounded-none">
+              <div className="h-6 w-full border-2 border-black bg-[#12141D] p-0.5 shadow-pixel-sm rounded-none">
                 <div
                   className={cn(
                     "h-full transition-all duration-500 rounded-none",
@@ -236,7 +200,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
                   style={{ width: `${probability}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[10px] font-mono text-gray-500 mt-1">
+              <div className="flex justify-between text-[10px] font-mono text-zinc-500 mt-1">
                 <span>{t.watch.gaugeMarks.calm}</span>
                 <span>{t.watch.gaugeMarks.mid}</span>
                 <span>{t.watch.gaugeMarks.target}</span>
@@ -245,12 +209,12 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             </div>
 
             {/* Castle Intel Box */}
-            <div className="border-2 border-black bg-[#0F111A] p-3 sm:p-4 rounded-none shadow-pixel-sm">
+            <div className="border-2 border-black bg-[#141622] p-3 sm:p-4 rounded-none shadow-pixel-sm">
               <div className="flex items-center gap-2 font-pixel text-[11px] text-mario-coin mb-2">
                 <AlertTriangle size={14} className="text-mario-coin" />
                 <span>{t.watch.radarAnalysisTitle}</span>
               </div>
-              <p className="font-mono text-xs text-gray-300 leading-relaxed">
+              <p className="font-mono text-xs text-zinc-300 leading-relaxed">
                 {t.watch.radarAnalysisText(
                   stats.avg_interval_days.toFixed(1),
                   stats.days_since_last.toFixed(1),
@@ -269,13 +233,13 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
               <span>🎲</span>
               <span>{t.watch.betTitle}</span>
             </div>
-            <span className="font-mono text-xs text-gray-400">
+            <span className="font-mono text-xs text-zinc-400">
               {t.watch.totalBets}{" "}
-              <span className="text-white font-bold">{totalVotes}</span>
+              <span className="text-zinc-100 font-bold">{totalVotes}</span>
             </span>
           </div>
 
-          <p className="font-mono text-xs text-gray-400 mb-4">
+          <p className="font-mono text-xs text-zinc-400 mb-4">
             {t.watch.betDesc}
           </p>
 
@@ -285,10 +249,10 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             <button
               onClick={() => handleVote("yes")}
               className={cn(
-                "p-3 sm:p-4 border-[3px] border-black font-pixel text-xs sm:text-sm shadow-pixel rounded-none transition-all active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-between group",
+                "p-3 sm:p-4 border-2 border-black font-pixel text-xs sm:text-sm shadow-pixel rounded-none transition-all active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-between group",
                 userBet === "yes"
                   ? "bg-mario-green text-black border-white ring-2 ring-mario-green"
-                  : "bg-[#0F111A] text-gray-200 hover:bg-mario-green hover:text-black hover:border-black"
+                  : "bg-[#141622] text-zinc-200 hover:bg-mario-green hover:text-black hover:border-black"
               )}
             >
               <div className="flex items-center gap-2">
@@ -311,10 +275,10 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             <button
               onClick={() => handleVote("no")}
               className={cn(
-                "p-3 sm:p-4 border-[3px] border-black font-pixel text-xs sm:text-sm shadow-pixel rounded-none transition-all active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-between group",
+                "p-3 sm:p-4 border-2 border-black font-pixel text-xs sm:text-sm shadow-pixel rounded-none transition-all active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-between group",
                 userBet === "no"
                   ? "bg-mario-red text-white border-white ring-2 ring-mario-red"
-                  : "bg-[#0F111A] text-gray-200 hover:bg-mario-red hover:text-white hover:border-black"
+                  : "bg-[#141622] text-zinc-200 hover:bg-mario-red hover:text-white hover:border-black"
               )}
             >
               <div className="flex items-center gap-2">
@@ -335,15 +299,15 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
           </div>
 
           {/* Ratio Comparison Bar */}
-          <div className="bg-[#0F111A] border-2 border-black p-3 sm:p-4 rounded-none shadow-pixel-sm mb-4">
+          <div className="bg-[#141622] border-2 border-black p-3 sm:p-4 rounded-none shadow-pixel-sm mb-4">
             <div className="flex items-center justify-between font-pixel text-[10px] sm:text-xs mb-2">
               <span className="text-mario-green flex items-center gap-1">
                 <span>🍄 YES:</span>
                 <span>{yesPercentage}%</span>
-                <span className="font-mono text-gray-400">({currentYesVotes})</span>
+                <span className="font-mono text-zinc-400">({currentYesVotes})</span>
               </span>
               <span className="text-mario-red flex items-center gap-1">
-                <span className="font-mono text-gray-400">({currentNoVotes})</span>
+                <span className="font-mono text-zinc-400">({currentNoVotes})</span>
                 <span>{noPercentage}%</span>
                 <span>:NO 👾</span>
               </span>
@@ -364,7 +328,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
 
           {/* Social Share & Virus Loop */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <div className="text-xs font-mono text-gray-400">
+            <div className="text-xs font-mono text-zinc-400">
               {isClient && userBet ? (
                 <span className="text-mario-coin">
                   {t.watch.betLocked(userBet === "yes" ? t.watch.yesLabel : t.watch.noLabel)}
@@ -377,7 +341,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyLink}
-                className="px-3 py-2 border-2 border-black bg-[#0F111A] font-pixel text-[10px] text-gray-300 hover:text-white shadow-pixel-sm rounded-none transition-all flex items-center gap-1.5"
+                className="px-3 py-2 border-2 border-black bg-[#141622] font-pixel text-[10px] text-zinc-300 hover:text-white shadow-pixel-sm rounded-none transition-all flex items-center gap-1.5"
                 title="Copy Prediction Text"
               >
                 {copiedLink ? <Check size={12} className="text-mario-green" /> : <Share2 size={12} />}

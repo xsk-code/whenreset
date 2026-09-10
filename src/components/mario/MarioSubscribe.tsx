@@ -105,16 +105,16 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-w-lg border-[4px] border-black bg-[#181B26] p-5 sm:p-6 shadow-[8px_8px_0px_#000000] rounded-none text-white relative">
+      <div className="w-full max-w-lg border-2 border-black bg-[#191C28] p-5 sm:p-6 shadow-pixel-lg rounded-none text-zinc-200 relative">
         {/* Retro Header Bar */}
-        <div className="flex items-center justify-between border-b-2 border-black pb-3 mb-4">
+        <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 mb-4">
           <div className="flex items-center gap-2">
             <span className="text-mario-coin text-lg">📡</span>
             <div>
               <h3 className="font-pixel text-xs sm:text-sm text-mario-coin">
                 {t.subscribe.title}
               </h3>
-              <p className="font-mono text-[10px] text-gray-400">
+              <p className="font-mono text-[10px] text-zinc-400">
                 {t.subscribe.subtitle}
               </p>
             </div>
@@ -135,20 +135,20 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
 
         {/* Saved Status Notice */}
         {savedEmail && status !== "error" && (
-          <div className="mb-4 p-3 border-2 border-mario-green bg-[#0F111A] text-mario-green font-mono text-xs flex items-center justify-between shadow-pixel-sm">
+          <div className="mb-4 p-3 border-2 border-mario-green bg-[#12141D] text-mario-green font-mono text-xs flex items-center justify-between shadow-pixel-sm">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <div>
-                <span className="font-pixel text-[9px] block text-white">
+                <span className="font-pixel text-[9px] block text-zinc-200">
                   {t.subscribe.tunedIn}
                 </span>
-                <span className="text-gray-300 break-all">{savedEmail}</span>
+                <span className="text-zinc-300 break-all">{savedEmail}</span>
               </div>
             </div>
             <button
               type="button"
               onClick={handleUnsubscribe}
-              className="font-pixel text-[8px] text-gray-400 hover:text-mario-red ml-2 shrink-0 underline"
+              className="font-pixel text-[8px] text-zinc-400 hover:text-mario-red ml-2 shrink-0 underline"
             >
               {t.subscribe.change}
             </button>
@@ -172,12 +172,12 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
 
         {/* Form: Email Subscription */}
         <form onSubmit={handleSubmit} className="mb-6">
-          <label className="block font-pixel text-[10px] text-gray-300 mb-2">
+          <label className="block font-pixel text-[10px] text-zinc-300 mb-2">
             {t.subscribe.inputLabel}
           </label>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
-              <Mail className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
+              <Mail className="w-4 h-4 absolute left-3 top-3 text-zinc-500" />
               <input
                 type="email"
                 value={email}
@@ -186,24 +186,24 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
                   if (status === "error") setStatus("idle");
                 }}
                 placeholder={t.subscribe.placeholder}
-                className="w-full pl-9 pr-3 py-2.5 bg-[#0F111A] border-2 border-black text-white font-mono text-xs placeholder-gray-600 rounded-none focus:outline-none focus:border-mario-coin shadow-pixel-pressed"
+                className="w-full pl-9 pr-3 py-2.5 bg-[#12141D] border-2 border-black text-zinc-200 font-mono text-xs placeholder-zinc-600 rounded-none focus:outline-none focus:border-mario-coin shadow-pixel-pressed"
               />
             </div>
             <button
               type="submit"
-              className="pixel-btn px-4 py-2.5 bg-mario-coin text-black font-pixel text-[10px] border-2 border-black rounded-none hover:bg-[#FED626] flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+              className="pixel-btn px-4 py-2.5 bg-mario-coin text-black font-pixel text-[10px] border-2 border-black rounded-none hover:bg-[#D97706] flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>{t.subscribe.button}</span>
             </button>
           </div>
-          <p className="font-mono text-[10px] text-gray-500 mt-1.5">
+          <p className="font-mono text-[10px] text-zinc-500 mt-1.5">
             {t.subscribe.note}
           </p>
         </form>
 
         {/* Secondary Broadcast Channels */}
-        <div className="border-t-2 border-black pt-4">
+        <div className="border-t border-zinc-800/80 pt-4">
           <div className="font-pixel text-[10px] text-mario-coin mb-2 flex items-center gap-1.5">
             <span>⚡</span>
             <span>{t.subscribe.altChannels}</span>
@@ -230,25 +230,25 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
                 setShowTgNotice(true);
                 trackEvent("telegram_beacon_clicked", { status: "under_construction" });
               }}
-              className="p-2.5 border-2 border-black bg-[#0F111A] hover:bg-[#151926] text-left flex items-center justify-between gap-2 shadow-pixel-sm transition-all group cursor-pointer"
+              className="p-2.5 border-2 border-black bg-[#12141D] hover:bg-[#161926] text-left flex items-center justify-between gap-2 shadow-pixel-sm transition-all group cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <span className="text-base">✈️</span>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-pixel text-[9px] text-white group-hover:text-mario-coin">
+                    <span className="font-pixel text-[9px] text-zinc-200 group-hover:text-mario-coin">
                       {t.subscribe.telegramBeacon}
                     </span>
-                    <span className="font-pixel text-[7px] px-1 py-0.2 bg-gray-800 text-yellow-400 border border-black">
+                    <span className="font-pixel text-[7px] px-1 py-0.2 bg-zinc-800 text-amber-400 border border-black">
                       {t.subscribe.telegramComingSoon || "SOON"}
                     </span>
                   </div>
-                  <div className="font-mono text-[10px] text-gray-500">
+                  <div className="font-mono text-[10px] text-zinc-500">
                     t.me/whenreset
                   </div>
                 </div>
               </div>
-              <span className="font-pixel text-[8px] text-gray-400 group-hover:text-yellow-400">
+              <span className="font-pixel text-[8px] text-zinc-400 group-hover:text-amber-400">
                 [ ⏳ ]
               </span>
             </button>
@@ -262,26 +262,26 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
                 playMarioCoinSound();
                 triggerHaptic(8);
               }}
-              className="p-2.5 border-2 border-black bg-[#0F111A] hover:bg-[#121622] flex items-center justify-between gap-2 shadow-pixel-sm transition-all group"
+              className="p-2.5 border-2 border-black bg-[#12141D] hover:bg-[#161926] flex items-center justify-between gap-2 shadow-pixel-sm transition-all group"
             >
               <div className="flex items-center gap-2">
                 <span className="text-base">🐦</span>
                 <div>
-                  <div className="font-pixel text-[9px] text-white group-hover:text-mario-coin">
+                  <div className="font-pixel text-[9px] text-zinc-200 group-hover:text-mario-coin">
                     {t.subscribe.xRadar}
                   </div>
-                  <div className="font-mono text-[10px] text-gray-400">
+                  <div className="font-mono text-[10px] text-zinc-400">
                     @thsottiaux on X
                   </div>
                 </div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-white shrink-0" />
+              <ExternalLink className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white shrink-0" />
             </a>
           </div>
         </div>
 
         {/* NES Modal Footer Note */}
-        <div className="mt-5 text-center font-pixel text-[9px] text-gray-500 border-t border-black/40 pt-3">
+        <div className="mt-5 text-center font-pixel text-[9px] text-zinc-500 border-t border-zinc-800/60 pt-3">
           {t.subscribe.footerTip}
         </div>
       </div>

@@ -5,45 +5,54 @@
 @tailwind utilities;
 
 :root {
-  --bg-sky: #5C94FC;
-  --bg-ground: #00A800;
-  --bg-dark: #0F111A;
+  --bg-sky: #60A5FA;
+  --bg-ground: #22C55E;
+  --bg-dark: #12141D;
   --card-light: #FFFFFF;
-  --card-dark: #181B26;
+  --card-dark: #191C28;
 }
 
 body {
   font-family: 'JetBrains Mono', monospace;
-  image-rendering: pixelated;
-  -webkit-font-smoothing: none;
+  background-color: var(--bg-dark);
+  color: #E2E8F0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* NES Retro Pixel Rules */
+.font-pixel {
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: none;
+}
+
+/* Calmer Pixel Borders & Shadows */
 .pixel-border {
-  border: 3px solid #000000;
-  box-shadow: 4px 4px 0px #000000;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.75);
 }
 
 .pixel-border-sm {
-  border: 2px solid #000000;
-  box-shadow: 2px 2px 0px #000000;
+  border: 1.5px solid #000000;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.65);
 }
 
 .pixel-btn {
-  border: 3px solid #000000;
-  box-shadow: 4px 4px 0px #000000;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.75);
   transition: transform 0.05s ease, box-shadow 0.05s ease;
   user-select: none;
 }
 
 .pixel-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0px #000000;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.85);
 }
 
 .pixel-btn:active {
-  transform: translate(3px, 3px);
-  box-shadow: 1px 1px 0px #000000;
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.6);
 }
 
 /* Coin Pop & Block Hit Animations */
@@ -83,11 +92,11 @@ body {
 
 @keyframes pixelBlink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
+  50% { opacity: 0.35; }
 }
 
 .animate-pixel-blink {
-  animation: pixelBlink 0.9s infinite steps(1);
+  animation: pixelBlink 1.5s infinite ease-in-out;
 }
 
 /* 8-bit Scanline / Mesh Effect */

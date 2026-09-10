@@ -42,6 +42,14 @@ export interface TranslationDictionary {
     myCoins: string;
     worldCoins: string;
     worldCoinsLive: string;
+    statusPillLabel: string;
+    statusJustReset: string;
+    statusStable: string;
+    statusWindow: string;
+    cycleProgressTitle: (avg: string) => string;
+    cycleRemaining: (days: string) => string;
+    subscribeCta: string;
+    prayEggTag: string;
   };
   stats: {
     title: string;

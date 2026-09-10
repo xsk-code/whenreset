@@ -54,14 +54,14 @@ export function MarioSponsors() {
   return (
     <section className="w-full max-w-5xl my-4">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 border-b-2 border-black pb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 border-b border-zinc-800/80 pb-2">
         <div className="flex items-center gap-2">
           <span className="text-mario-coin text-base">🏪</span>
           <h2 className="font-pixel text-xs sm:text-sm text-mario-coin tracking-wide">
             {t.sponsors.title}
           </h2>
         </div>
-        <div className="font-mono text-[11px] text-gray-400">
+        <div className="font-mono text-[11px] text-zinc-400">
           {t.sponsors.subtitle}
         </div>
       </div>
@@ -75,7 +75,7 @@ export function MarioSponsors() {
           return (
             <div
               key={baseItem.id}
-              className={`border-[3px] border-black bg-[#181B26] p-4 shadow-pixel rounded-none flex flex-col justify-between transition-all duration-150 hover:-translate-y-1 hover:shadow-pixel-lg ${
+              className={`border-2 border-black bg-[#191C28] p-4 shadow-pixel rounded-none flex flex-col justify-between transition-all duration-150 hover:-translate-y-1 hover:shadow-pixel-lg ${
                 baseItem.isClaimSlot
                   ? "border-purple-500/80 bg-[#1e172e]"
                   : ""
@@ -84,7 +84,7 @@ export function MarioSponsors() {
               {/* Item Top: Icon + Badge */}
               <div>
                 <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="w-12 h-12 bg-[#0F111A] border-2 border-black flex items-center justify-center text-2xl shadow-pixel-sm shrink-0">
+                  <div className="w-12 h-12 bg-[#12141D] border-2 border-black flex items-center justify-center text-2xl shadow-pixel-sm shrink-0">
                     <span>{baseItem.icon}</span>
                   </div>
 
@@ -100,7 +100,7 @@ export function MarioSponsors() {
                   <div className="font-pixel text-[10px] text-mario-coin mb-1 truncate">
                     {item.name}
                   </div>
-                  <div className="font-mono text-xs font-bold text-white tracking-tight">
+                  <div className="font-mono text-xs font-bold text-zinc-200 tracking-tight">
                     {item.category}
                   </div>
                 </div>
@@ -111,13 +111,13 @@ export function MarioSponsors() {
                 </div>
 
                 {/* Description */}
-                <p className="font-mono text-xs text-gray-300 leading-relaxed mb-4">
+                <p className="font-mono text-xs text-zinc-300 leading-relaxed mb-4">
                   {item.description}
                 </p>
               </div>
 
               {/* Action Button */}
-              <div className="pt-2 border-t border-black/50">
+              <div className="pt-2 border-t border-zinc-800/60">
                 {baseItem.href ? (
                   <a
                     href={baseItem.href}
@@ -132,7 +132,7 @@ export function MarioSponsors() {
                   </a>
                 ) : (
                   <div
-                    className="w-full py-2 px-3 font-pixel text-[9px] border-2 border-dashed border-gray-600/70 flex items-center justify-center gap-1.5 rounded-none text-center bg-[#0F111A]/60 text-gray-500 select-none"
+                    className="w-full py-2 px-3 font-pixel text-[9px] border-2 border-dashed border-zinc-700/70 flex items-center justify-center gap-1.5 rounded-none text-center bg-[#12141D]/60 text-zinc-500 select-none"
                   >
                     <span>[ {item.ctaText} ]</span>
                   </div>

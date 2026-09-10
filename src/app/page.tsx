@@ -36,6 +36,10 @@ export default function Home() {
     } catch {}
   }, []);
 
+  const handleCoinChange = useCallback((coins: number) => {
+    setUserCoins(coins);
+  }, []);
+
   // Fetch latest resets from the API endpoint
   const fetchResets = useCallback(async (isManual = false) => {
     if (isManual) setIsRefreshing(true);
@@ -70,7 +74,7 @@ export default function Home() {
   const latest = resets[0];
 
   return (
-    <main className="min-h-screen bg-mario-dark text-white p-3 sm:p-6 md:p-10 flex flex-col items-center selection:bg-mario-coin selection:text-black">
+    <main className="min-h-screen bg-mario-dark text-zinc-200 p-3 sm:p-6 md:p-10 flex flex-col items-center selection:bg-mario-coin selection:text-black">
       {/* Decoupled Retro Top Arcade HUD */}
       <MarioHeader
         totalResets={stats.total}
@@ -82,7 +86,9 @@ export default function Home() {
       {latest && (
         <MarioHero
           latestReset={latest}
-          onCoinChange={(coins) => setUserCoins(coins)}
+          onCoinChange={handleCoinChange}
+          onOpenSubscribe={() => setIsSubscribeOpen(true)}
+          avgIntervalDays={stats.avg_interval_days}
         />
       )}
 
@@ -106,16 +112,16 @@ export default function Home() {
       <MarioSponsors />
 
       {/* NES Retro Footer with Sponsorship & Contact Hub */}
-      <footer className="w-full max-w-5xl mt-6 mb-8 flex flex-col items-center text-center text-xs font-mono text-gray-400 border-t-2 border-black pt-6">
+      <footer className="w-full max-w-5xl mt-6 mb-8 flex flex-col items-center text-center text-xs font-mono text-zinc-400 border-t border-zinc-800/80 pt-6">
         {/* Retro 8-Bit Sponsorship & Developer Contact Box */}
-        <div className="w-full max-w-xl border-[3px] border-black bg-[#181B26] p-4 sm:p-5 shadow-pixel rounded-none mb-6 text-center">
+        <div className="w-full max-w-xl border-2 border-black bg-mario-darkCard p-4 sm:p-5 shadow-pixel rounded-none mb-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-1.5">
             <span className="text-base">👾</span>
             <h3 className="font-pixel text-xs text-mario-coin">
               {t.footer.sponsorTitle || "SPONSORSHIP & BUSINESS COOPERATION"}
             </h3>
           </div>
-          <p className="font-mono text-xs text-gray-300 mb-4 max-w-md mx-auto">
+          <p className="font-mono text-xs text-zinc-300 mb-4 max-w-md mx-auto">
             {t.footer.sponsorSubtitle ||
               "Reach thousands of quota-weary AI engineers & developers worldwide."}
           </p>
@@ -149,7 +155,7 @@ export default function Home() {
                   setTimeout(() => setCopiedEmail(false), 2500);
                 }
               }}
-              className="pixel-btn px-3 py-2 bg-[#0F111A] hover:bg-black text-gray-200 font-pixel text-[9px] border-2 border-black shadow-pixel-sm flex items-center gap-1.5 rounded-none cursor-pointer"
+              className="pixel-btn px-3 py-2 bg-[#12141D] hover:bg-black text-zinc-300 font-pixel text-[9px] border-2 border-black shadow-pixel-sm flex items-center gap-1.5 rounded-none cursor-pointer"
               title="Copy sponsor email"
             >
               {copiedEmail ? (
@@ -161,7 +167,7 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5 text-gray-400" />
+                  <Copy className="w-3.5 h-3.5 text-zinc-400" />
                   <span>[ COPY ]</span>
                 </>
               )}
@@ -175,7 +181,7 @@ export default function Home() {
                 triggerHaptic(8);
                 trackEvent("footer_feedback_clicked");
               }}
-              className="pixel-btn px-2.5 py-2 bg-[#0F111A] hover:bg-[#1c2130] text-gray-400 hover:text-white font-pixel text-[9px] border-2 border-black shadow-pixel-sm flex items-center gap-1.5 rounded-none cursor-pointer"
+              className="pixel-btn px-2.5 py-2 bg-[#12141D] hover:bg-[#1c2130] text-zinc-400 hover:text-white font-pixel text-[9px] border-2 border-black shadow-pixel-sm flex items-center gap-1.5 rounded-none cursor-pointer"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>{t.footer.feedbackCta || "[ 💬 FEEDBACK ]"}</span>

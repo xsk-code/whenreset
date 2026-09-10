@@ -141,9 +141,9 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
 
   return (
     <section className="w-full max-w-5xl my-4">
-      <div className="border-[3px] border-black bg-mario-darkCard p-4 sm:p-6 md:p-8 shadow-pixel rounded-none">
+      <div className="border-2 border-black bg-mario-darkCard p-4 sm:p-6 md:p-8 shadow-pixel rounded-none">
         {/* Top Header Row */}
-        <div className="flex flex-wrap items-center justify-between border-b-2 border-black pb-4 mb-6 gap-3">
+        <div className="flex flex-wrap items-center justify-between border-b border-zinc-800/80 pb-4 mb-6 gap-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl select-none">🗺️</span>
             <div>
@@ -151,11 +151,8 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                 <h2 className="font-pixel text-xs sm:text-sm md:text-base text-mario-coin">
                   {t.heatmap.title}
                 </h2>
-                <span className="font-pixel text-[9px] sm:text-[10px] bg-mario-coin text-black px-2 py-0.5 border border-black shadow-pixel-sm rounded-none">
-                  {t.heatmap.stageTag}
-                </span>
               </div>
-              <p className="font-mono text-[11px] text-gray-400 mt-1">
+              <p className="font-mono text-[11px] text-zinc-400 mt-1">
                 {t.heatmap.subtitle}
               </p>
             </div>
@@ -305,12 +302,12 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
         </div>
 
         {/* Legend & 26-Week Total Metric Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t-2 border-black/50 text-xs font-mono">
+        <div className="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-zinc-800/80 text-xs font-mono">
           {/* Legend Items */}
-          <div className="flex flex-wrap items-center gap-4 text-gray-300">
+          <div className="flex flex-wrap items-center gap-4 text-zinc-300">
             <div className="flex items-center gap-1.5">
-              <span className="w-3.5 h-3.5 bg-[#12141F] border border-[#333A4E] inline-block" />
-              <span className="text-gray-400 text-[11px]">{t.heatmap.noReset}</span>
+              <span className="w-3.5 h-3.5 bg-[#12141D] border border-zinc-800 inline-block" />
+              <span className="text-zinc-400 text-[11px]">{t.heatmap.noReset}</span>
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -333,10 +330,10 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
           </div>
 
           {/* Indicator Count */}
-          <div className="flex items-center gap-2 font-pixel text-[10px] text-gray-300 bg-[#0F111A] px-3 py-1.5 border border-black">
+          <div className="flex items-center gap-2 font-pixel text-[10px] text-zinc-300 bg-[#12141D] px-3 py-1.5 border border-black">
             <span>{t.heatmap.windowResets}</span>
             <span className="text-mario-coin font-bold">{totalResetsInView}</span>
-            <span className="text-gray-500">|</span>
+            <span className="text-zinc-500">|</span>
             <span>{t.heatmap.allTime}</span>
             <span className="text-mario-green font-bold">{resets.length}</span>
           </div>
@@ -344,9 +341,9 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
 
         {/* Inspected Block Intel Card (Accessible for both hover & mobile click) */}
         {activeInspection && (
-          <div className="mt-5 border-2 border-black bg-[#0F111A] p-4 rounded-none shadow-pixel-sm transition-all">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 pb-3 mb-3">
-              <div className="flex items-center gap-2.5 font-pixel text-xs text-white">
+          <div className="mt-5 border-2 border-black bg-[#141622] p-4 rounded-none shadow-pixel-sm transition-all">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800/80 pb-3 mb-3">
+              <div className="flex items-center gap-2.5 font-pixel text-xs text-zinc-200">
                 <Calendar size={14} className="text-mario-coin" />
                 <span>
                   {activeInspection.dateStr} (
@@ -370,7 +367,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                     <Sparkles size={11} /> {t.heatmap.regularBadge}
                   </span>
                 ) : (
-                  <span className="bg-gray-800 text-gray-400 font-pixel text-[10px] px-2 py-0.5 border border-gray-700">
+                  <span className="bg-zinc-800 text-zinc-400 font-pixel text-[10px] px-2 py-0.5 border border-zinc-700">
                     {t.heatmap.emptyBadge}
                   </span>
                 )}
@@ -383,12 +380,12 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                 {activeInspection.resets.map((r, i) => (
                   <div
                     key={r.id || i}
-                    className="border border-gray-800 bg-[#141724] p-3 rounded-none"
+                    className="border border-zinc-800 bg-[#191C28] p-3 rounded-none"
                   >
-                    <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-gray-400 mb-1">
+                    <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-zinc-400 mb-1">
                       <span>
                         {t.heatmap.announced}{" "}
-                        <span className="text-white font-bold">
+                        <span className="text-zinc-200 font-bold">
                           {new Date(r.announced_at).toUTCString()}
                         </span>
                       </span>
@@ -404,11 +401,11 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                         </a>
                       )}
                     </div>
-                    <p className="font-mono text-xs sm:text-sm text-gray-200 italic leading-relaxed">
+                    <p className="font-mono text-xs sm:text-sm text-zinc-200 italic leading-relaxed">
                       &ldquo;{r.text}&rdquo;
                     </p>
                     {r.source?.author && (
-                      <div className="text-[11px] font-mono text-gray-400 mt-1">
+                      <div className="text-[11px] font-mono text-zinc-400 mt-1">
                         {t.heatmap.author} @{r.source.author}
                       </div>
                     )}
@@ -416,7 +413,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                 ))}
               </div>
             ) : (
-              <p className="font-mono text-xs text-gray-400 italic">
+              <p className="font-mono text-xs text-zinc-400 italic">
                 {t.heatmap.quietDungeon}
               </p>
             )}
