@@ -127,7 +127,7 @@
 
 ### 2. 安装依赖
 ```bash
-git clone https://github.com/your-org/whenreset.git
+git clone https://github.com/xsk-code/whenreset.git
 cd whenreset
 npm install
 ```
