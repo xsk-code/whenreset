@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sync": "node scripts/sync-upstream.mjs",
+    "tweet": "node scripts/generate-tweet.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

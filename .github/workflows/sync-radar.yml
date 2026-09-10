@@ -1,0 +1,44 @@
+name: Sync Upstream Radar
+
+on:
+  schedule:
+    # Run every 2 hours
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-radar:
+    name: Sync Upstream Codex Resets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Upstream Sync
+        run: node scripts/sync-upstream.mjs
+
+      - name: Check for data changes
+        id: git-check
+        run: |
+          if [ -n "$(git status --porcelain src/data/fallback-resets.json)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push changes
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/data/fallback-resets.json
+          git commit -m "chore(data): auto sync upstream resets [skip ci]"
+          git push
