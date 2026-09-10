@@ -24,7 +24,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       sfxOn: "SFX: ON",
       sfxOff: "SFX: OFF",
       hitBlockAria: "Hit Question Block for 1-UP and Coins",
-      hitBlockButtonActive: "[ 🍄 Thank You Mario! ]",
+      hitBlockButtonActive: "[ 🍄 Thank You Tibo! ]",
       hitBlockButtonNormal: "[ ❓ Hit for 1-UP ]",
       score: "SCORE",
       coins: "COINS",
@@ -67,7 +67,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
     },
     watch: {
-      title: "BOWSER CASTLE RADAR ALERT",
+      title: "CASTLE RADAR ALERT",
       stageTag: "STAGE 1-2",
       subtitle: "Dynamic quota refresh probability & community prediction desk",
       threatCritical: "THREAT LEVEL: CRITICAL SURGE",
@@ -77,7 +77,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       chance: "CHANCE",
       criticalDesc: "Castle tremors detected! Quota refresh is statistically imminent.",
       elevatedDesc: "Lava heat rising. Quota refresh window is approaching average cycle.",
-      lowDesc: "Dungeon calm. Quota was renewed recently; Bowser minions on patrol.",
+      lowDesc: "Dungeon calm. Quota was renewed recently; sentry guards on patrol.",
       elapsed: "ELAPSED",
       avgCadence: "AVG CADENCE",
       maxRecord: "MAX RECORD",
@@ -97,7 +97,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       yesLabel: "[ YES - IMMINENT (<24h) ]",
       yesSub: "Expect quota drop very soon",
       noLabel: "[ NO - LONGER WAIT ]",
-      noSub: "Bowser will hold the gates",
+      noSub: "Castle gates remain locked",
       yourBet: "YOUR BET",
       betLocked: (choiceText) =>
         `★ Your prediction is locked: ${choiceText}. Share it on X!`,
@@ -106,7 +106,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       copied: "COPIED!",
       tweetBet: "TWEET YOUR BET TO X",
       shareText: (prob, elapsed, avg, yesPct, noPct, choice) =>
-        `🏰 Bowser Castle Alert on WhenReset!\n\n` +
+        `🏰 Castle Radar Alert on WhenReset!\n\n` +
         `🔥 Quota Drop Probability: ${prob}% Chance\n` +
         `⏱️ Days Since Last Reset: ${elapsed}d (Avg Cadence: ~${avg}d)\n` +
         `🎲 Community Bet: ${yesPct}% YES vs ${noPct}% NO\n` +
@@ -119,7 +119,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     heatmap: {
       title: "SUPER STAGE 26-WEEK PIXEL HEATMAP",
       stageTag: "STAGE 1-2",
-      subtitle: "26-week calendar matrix tracking all Codex resets across Bowser's realm",
+      subtitle: "26-week calendar matrix tracking all Codex resets across the dungeon realm",
       view26: "26 WEEKS (182D)",
       view52: "52 WEEKS (ALL 53)",
       dayLabels: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
@@ -189,14 +189,14 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
     },
     subscribe: {
-      title: "TOAD COMM STATION",
+      title: "RADAR COMM STATION",
       subtitle: "8-BIT QUOTA DROP NOTIFICATION RADAR",
       tunedIn: "TUNED IN:",
       change: "CHANGE",
       successMsg: "🍄 1-UP! RADAR FREQUENCY TUNED! YOU WILL RECEIVE INSTANT DISPATCHES WHEN CODEX QUOTAS RESET.",
       invalidEmail: "INVALID FREQUENCY! PLEASE ENTER A VALID EMAIL.",
       inputLabel: "DISPATCH FREQUENCY (EMAIL):",
-      placeholder: "mario@mushroom-kingdom.io",
+      placeholder: "developer@whenreset.top",
       button: "[ TUNE IN ]",
       note: "Zero spam. Local memory verified. Triggered only upon confirmed OpenAI Codex quota drops.",
       altChannels: "ALTERNATIVE BEACONS & BROADCASTS",
@@ -229,13 +229,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       stage1Title: "STAGE 1-1",
       stage1Desc: "HERO CLOCK & STATS",
       stage2Title: "STAGE 1-2",
-      stage2Desc: "BOWSER CASTLE & HEATMAP",
+      stage2Desc: "CASTLE RADAR & HEATMAP",
       stage3Title: "STAGE 1-3",
       stage3Desc: "CHRONICLES & COMM RADAR",
       complete: "✓ COMPLETE",
     },
     footer: {
-      quote: "“THANK YOU MARIO! BUT OUR QUOTA IS IN ANOTHER CASTLE!”",
+      quote: "“THANK YOU TIBO! BUT OUR QUOTA IS IN ANOTHER CASTLE!”",
       disclaimer: "WHENRESET is an independent 8-bit retro tracker for OpenAI Codex quotas. All trademarks belong to their respective owners.",
     },
   },
@@ -262,7 +262,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       sfxOn: "音效: 开",
       sfxOff: "音效: 关",
       hitBlockAria: "顶问号方块抽取 1-UP 与金币",
-      hitBlockButtonActive: "[ 🍄 谢谢马里奥! ]",
+      hitBlockButtonActive: "[ 🍄 谢谢 Tibo! ]",
       hitBlockButtonNormal: "[ ❓ 顶方块抽 1-UP ]",
       score: "积分",
       coins: "金币",
@@ -305,7 +305,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
     },
     watch: {
-      title: "库巴城堡雷达预警",
+      title: "城堡雷达预警",
       stageTag: "关卡 1-2",
       subtitle: "动态额度释放概率分析与社区预测平台",
       threatCritical: "威胁级别: 临界高危爆发",
@@ -315,7 +315,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       chance: "概率",
       criticalDesc: "城堡剧烈震动！额度刷新在统计学上已极度迫近。",
       elevatedDesc: "岩浆温度升高。已逼近历史平均刷新周期窗口。",
-      lowDesc: "地牢平静。近期刚完成额度重置，库巴卫兵巡逻中。",
+      lowDesc: "地牢平静。近期刚完成额度重置，城堡守卫巡逻中。",
       elapsed: "已过去",
       avgCadence: "平均周期",
       maxRecord: "历史最长",
@@ -335,7 +335,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       yesLabel: "[ 是 - 迫在眉睫 (<24小时) ]",
       yesSub: "预计额度很快就会释放",
       noLabel: "[ 否 - 还需等待 ]",
-      noSub: "库巴仍将紧闭城门",
+      noSub: "城堡大门仍将紧闭",
       yourBet: "你的押注",
       betLocked: (choiceText) =>
         `★ 你的预测已锁定: ${choiceText}。快去分享到 X 吧！`,
@@ -344,7 +344,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       copied: "已复制!",
       tweetBet: "分享预测到 X",
       shareText: (prob, elapsed, avg, yesPct, noPct, choice) =>
-        `🏰 WhenReset 库巴城堡雷达预警！\n\n` +
+        `🏰 WhenReset 城堡雷达预警！\n\n` +
         `🔥 Codex 额度释放概率: ${prob}%\n` +
         `⏱️ 距上次重置已过去: ${elapsed}天 (历史平均周期: ~${avg}天)\n` +
         `🎲 社区预测对决: ${yesPct}% 认为马上释放 vs ${noPct}% 认为还要再等等\n` +
@@ -357,7 +357,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     heatmap: {
       title: "超级关卡 26 周像素热力图",
       stageTag: "关卡 1-2",
-      subtitle: "横跨库巴王国的 26 周 Codex 重置全景像素日历矩阵",
+      subtitle: "横跨地下关卡的 26 周 Codex 重置全景像素日历矩阵",
       view26: "26 周 (182天)",
       view52: "52 周 (全部53次)",
       dayLabels: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
@@ -427,14 +427,14 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
     },
     subscribe: {
-      title: "奇诺比奥通信站",
+      title: "像素雷达通信站",
       subtitle: "8-BIT 额度释放通知雷达",
       tunedIn: "已锁定信道:",
       change: "修改",
       successMsg: "🍄 1-UP! 雷达信道已锁定！当 Codex 额度释放时，你将第一时间收到特急电报。",
       invalidEmail: "无效通信频率！请输入正确的邮箱地址。",
       inputLabel: "特急电报通信频率 (邮箱):",
-      placeholder: "mario@mushroom-kingdom.io",
+      placeholder: "developer@whenreset.top",
       button: "[ 接入信道 ]",
       note: "拒绝任何垃圾邮件。本地卡带存储认证。仅在确认 OpenAI Codex 释放额度时触发。",
       altChannels: "其他备用信标与广播频道",
@@ -467,13 +467,13 @@ export const translations: Record<Language, TranslationDictionary> = {
       stage1Title: "关卡 1-1",
       stage1Desc: "核心时钟与数据看板",
       stage2Title: "关卡 1-2",
-      stage2Desc: "库巴城堡与像素热力图",
+      stage2Desc: "城堡雷达与像素热力图",
       stage3Title: "关卡 1-3",
       stage3Desc: "编年任务史与通信雷达",
       complete: "✓ 已达成",
     },
     footer: {
-      quote: "“谢谢你马里奥！但是我们的额度在另一座城堡里！”",
+      quote: "“谢谢你 Tibo！但是我们的额度在另一座城堡里！”",
       disclaimer: "WHENRESET 是一个追踪 OpenAI Codex 额度的独立 8-Bit 复古监控站。所有商标归其各自所有者所有。",
     },
   },

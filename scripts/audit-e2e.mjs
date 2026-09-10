@@ -456,7 +456,7 @@ async function runAudit() {
     const bowserCheck = await browser.evaluate(`
       (() => {
         const text = document.body.innerText;
-        return text.includes('BOWSER CASTLE RADAR ALERT') &&
+        return (text.includes('CASTLE RADAR ALERT') || text.includes('BOWSER CASTLE RADAR ALERT')) &&
                text.includes('COMMUNITY PROP BET') &&
                text.includes('REFRESH PROBABILITY');
       })()
@@ -505,7 +505,8 @@ async function runAudit() {
       (() => {
         const text = document.body.innerText;
         return text.includes('WORLD PROGRESSION ROUTE') &&
-               text.includes('THANK YOU MARIO! BUT OUR QUOTA IS IN ANOTHER CASTLE!');
+               (text.includes('THANK YOU TIBO! BUT OUR QUOTA IS IN ANOTHER CASTLE!') ||
+                text.includes('THANK YOU MARIO! BUT OUR QUOTA IS IN ANOTHER CASTLE!'));
       })()
     `);
     recordResult(
@@ -699,7 +700,7 @@ async function runAudit() {
     // Capture Bowser Castle Radar Close-Up Asset
     const focusBowserPath = path.join(SCREENSHOTS_DIR, "focus-bowser-radar.png");
     try {
-      await browser.captureElementByText('section', 'BOWSER CASTLE RADAR ALERT', focusBowserPath, 16);
+      await browser.captureElementByText('section', 'CASTLE RADAR ALERT', focusBowserPath, 16);
       recordResult(
         "Visual Focus Asset",
         "Bowser Castle Radar Alert Desk (focus-bowser-radar.png)",
@@ -784,7 +785,7 @@ async function runAudit() {
         const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
 
         // 2. Submit invalid email
-        setter.call(input, "mario@mushroom");
+        setter.call(input, "developer@invalid");
         input.dispatchEvent(new Event('input', { bubbles: true }));
         submitBtn.click();
         await new Promise(r => setTimeout(r, 150));
@@ -792,7 +793,7 @@ async function runAudit() {
         const hasError = document.body.innerText.includes('INVALID FREQUENCY');
 
         // 3. Submit valid email
-        setter.call(input, "mario@mushroom-kingdom.io");
+        setter.call(input, "developer@whenreset.top");
         input.dispatchEvent(new Event('input', { bubbles: true }));
         submitBtn.click();
         await new Promise(r => setTimeout(r, 150));
@@ -801,7 +802,7 @@ async function runAudit() {
         const savedEmail = localStorage.getItem('whenreset_subscribed_email');
 
         return {
-          ok: isModalOpen && hasError && hasSuccess && savedEmail === "mario@mushroom-kingdom.io",
+          ok: isModalOpen && hasError && hasSuccess && savedEmail === "developer@whenreset.top",
           isModalOpen,
           hasError,
           hasSuccess,

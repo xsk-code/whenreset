@@ -123,7 +123,7 @@ function generateDrafts({ prob, days, avg, type }) {
     : "🍄🏁 [WORLD 1-1 CHECKPOINT] 🏁🍄";
 
   const statusNote = isCastleAlert
-    ? "🏰 Bowser lava rising, reset imminent!"
+    ? "🏰 Castle lava rising, reset imminent!"
     : isMidZone
     ? "🪙 Token meters heating up!"
     : "👾 Tokens running fresh!";

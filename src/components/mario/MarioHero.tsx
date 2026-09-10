@@ -207,7 +207,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
               ))}
             </div>
 
-            {/* Block Action Button: [ 🍄 Thank You Mario! ] or [ ❓ Hit for 1-UP ] */}
+            {/* Block Action Button: [ 🍄 Thank You Tibo! ] or [ ❓ Hit for 1-UP ] */}
             <button
               onClick={handleHitBlock}
               className={cn(

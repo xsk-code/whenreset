@@ -323,7 +323,7 @@ export default async function Image() {
               letterSpacing: "1px",
             }}
           >
-            SUPER MARIO 8-BIT ARCADE TRACKER // ZERO SERVER DOWNTIME
+            8-BIT RETRO PIXEL ARCADE TRACKER // ZERO SERVER DOWNTIME
           </div>
         </div>
       </div>
