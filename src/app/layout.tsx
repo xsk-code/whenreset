@@ -87,6 +87,67 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: "slY1HVnTseRcBnZ7E3RnMods60NuQxmnNO2Jn70DywA",
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://whenreset.top/#webapp",
+      name: "WhenReset",
+      alternateName: "WhenReset: 8-Bit Codex Reset Radar",
+      url: "https://whenreset.top",
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "All",
+      description:
+        "Retro 8-bit arcade tracker for OpenAI Codex rate limit resets and Model Context Protocol (MCP) server for Cursor and Claude Code.",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      featureList: [
+        "Real-time OpenAI Codex quota countdown clock",
+        "26-week historic pixel quota heatmap",
+        "Probabilistic reset threat radar",
+        "Zero-config Model Context Protocol (MCP) endpoint",
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://whenreset.top/#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "When does OpenAI Codex quota reset?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "OpenAI Codex quotas reset on average every 6.9 days based on historical refill announcements tracked by WhenReset.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How can I monitor Codex rate limits in Cursor or Claude Code?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "You can connect WhenReset's Model Context Protocol (MCP) server directly at https://whenreset.top/api/mcp to allow AI coding agents to autonomously inspect quota watermarks before running large refactors.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Is WhenReset free to use?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes, WhenReset is 100% free with zero registration, zero API keys required, and zero commercial tracking cookies.",
+          },
+        },
+      ],
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -96,6 +157,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="bg-mario-dark text-white min-h-screen selection:bg-mario-coin selection:text-black">
         <LanguageProvider>
           {children}
