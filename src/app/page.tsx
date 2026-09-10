@@ -5,6 +5,7 @@ import fallbackResets from "@/data/fallback-resets.json";
 import { calculateStats } from "@/lib/utils";
 import { ResetItem } from "@/lib/types";
 import { MarioHeader } from "@/components/mario/MarioHeader";
+import { MarioLogo } from "@/components/mario/MarioLogo";
 import { MarioHero } from "@/components/mario/MarioHero";
 import { MarioStats } from "@/components/mario/MarioStats";
 import { MarioWatch } from "@/components/mario/MarioWatch";
@@ -78,7 +79,10 @@ export default function Home() {
       </section>
 
       {/* NES Retro Footer */}
-      <footer className="w-full max-w-5xl mt-6 mb-8 text-center text-xs font-mono text-gray-400 border-t-2 border-black pt-6">
+      <footer className="w-full max-w-5xl mt-6 mb-8 flex flex-col items-center text-center text-xs font-mono text-gray-400 border-t-2 border-black pt-6">
+        <div className="mb-3">
+          <MarioLogo size="sm" />
+        </div>
         <p className="font-pixel text-[10px] text-mario-coin mb-2">
           &ldquo;THANK YOU MARIO! BUT OUR QUOTA IS IN ANOTHER CASTLE!&rdquo;
         </p>

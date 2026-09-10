@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "icons": "node scripts/generate-favicons.mjs",
     "sync": "node scripts/sync-upstream.mjs",
     "tweet": "node scripts/generate-tweet.mjs"
   },

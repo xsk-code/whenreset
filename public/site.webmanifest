@@ -1,0 +1,31 @@
+{
+  "name": "WhenReset: 8-Bit Retro Edition",
+  "short_name": "WhenReset",
+  "description": "OpenAI Codex Quota Reset Radar in Retro 8-Bit Pixel Style",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F111A",
+  "theme_color": "#0F111A",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

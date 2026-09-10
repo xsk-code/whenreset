@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" shape-rendering="crispEdges">
+  <!-- Outer Solid Black Retro Border -->
+  <rect x="0" y="0" width="32" height="32" fill="#000000"/>
+  
+  <!-- Main Coin Gold Background -->
+  <rect x="2" y="2" width="28" height="28" fill="#FBD000"/>
+  
+  <!-- 3D NES Inset Bevels: Top & Left Highlight -->
+  <rect x="2" y="2" width="28" height="3" fill="#FFF587"/>
+  <rect x="2" y="2" width="3" height="28" fill="#FFF587"/>
+  
+  <!-- 3D NES Inset Bevels: Bottom & Right Brick Shadow -->
+  <rect x="2" y="27" width="28" height="3" fill="#B84418"/>
+  <rect x="27" y="2" width="3" height="28" fill="#B84418"/>
+  
+  <!-- 4 Corner Rivets -->
+  <rect x="5" y="5" width="2" height="2" fill="#000000"/>
+  <rect x="25" y="5" width="2" height="2" fill="#000000"/>
+  <rect x="5" y="25" width="2" height="2" fill="#000000"/>
+  <rect x="25" y="25" width="2" height="2" fill="#000000"/>
+
+  <!-- Question Mark 3D Shadow (#B84418) -->
+  <rect x="13" y="8" width="8" height="3" fill="#B84418"/>
+  <rect x="11" y="9" width="3" height="4" fill="#B84418"/>
+  <rect x="19" y="9" width="3" height="5" fill="#B84418"/>
+  <rect x="16" y="14" width="4" height="2" fill="#B84418"/>
+  <rect x="15" y="16" width="3" height="3" fill="#B84418"/>
+  <rect x="15" y="21" width="3" height="3" fill="#B84418"/>
+
+  <!-- Question Mark Main Face (Black #000000) -->
+  <rect x="12" y="7" width="8" height="3" fill="#000000"/>
+  <rect x="10" y="8" width="3" height="4" fill="#000000"/>
+  <rect x="18" y="8" width="3" height="5" fill="#000000"/>
+  <rect x="15" y="13" width="4" height="2" fill="#000000"/>
+  <rect x="14" y="15" width="3" height="3" fill="#000000"/>
+  <rect x="14" y="20" width="3" height="3" fill="#000000"/>
+</svg>
