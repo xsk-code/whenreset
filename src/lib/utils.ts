@@ -162,3 +162,13 @@ export function playMarioPowerupSound() {
     // Ignore
   }
 }
+
+/**
+ * Bowser castle probability calculation based on elapsed days vs average cadence
+ */
+export function calculateWatchProbability(daysSinceLast: number, avgInterval: number): number {
+  if (avgInterval <= 0) return 50;
+  // Approaching the average cadence yields ~75% chance
+  const raw = Math.round((daysSinceLast / avgInterval) * 75);
+  return Math.min(99, Math.max(10, raw));
+}

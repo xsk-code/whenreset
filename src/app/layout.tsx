@@ -1,12 +1,82 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+export const viewport: Viewport = {
+  themeColor: "#0F111A",
+  colorScheme: "dark",
+};
+
 export const metadata: Metadata = {
-  title: "WhenReset: Super Mario Edition | 8-bit Codex Limit Tracker",
+  metadataBase: new URL("https://whenreset.top"),
+  title: {
+    default: "WhenReset: 8-Bit Retro Edition | OpenAI Codex Quota Reset Radar",
+    template: "%s | WhenReset 8-Bit",
+  },
   description:
-    "Track OpenAI Codex reset announcements in 8-bit Super Mario pixel style. 100% retro, live alerts, 26-week heatmap, and zero downtime.",
+    "Super Mario 8-bit retro arcade tracker for OpenAI Codex rate limit resets. Live radar, 26-week pixel heatmap, community prediction bets & 1-UP coin blocks.",
+  keywords: [
+    "OpenAI Codex",
+    "Codex Quota Reset",
+    "Rate Limit Tracker",
+    "OpenAI Reset Radar",
+    "Super Mario 8-Bit",
+    "Retro Arcade Tracker",
+    "OpenAI API Limits",
+    "Codex Rate Limits",
+    "WhenReset",
+    "Pixel Heatmap",
+    "8-bit Quota Monitor",
+  ],
+  authors: [{ name: "WhenReset Community" }],
+  creator: "@WhenReset",
+  publisher: "WhenReset",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: "https://whenreset.top",
+  },
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://whenreset.top",
+    siteName: "WhenReset",
+    title: "WhenReset: 8-Bit Retro Edition | OpenAI Codex Quota Reset Radar",
+    description:
+      "Super Mario 8-bit retro arcade tracker for OpenAI Codex rate limit resets. Live radar, 26-week pixel heatmap, community prediction bets & 1-UP coin blocks.",
+    images: [
+      {
+        url: "https://whenreset.top/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "WhenReset: 8-Bit Retro Edition | OpenAI Codex Quota Reset Radar",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WhenReset: 8-Bit Retro Edition | OpenAI Codex Quota Reset Radar",
+    description:
+      "Super Mario 8-bit retro arcade tracker for OpenAI Codex rate limit resets. Live radar, 26-week pixel heatmap, community prediction bets & 1-UP coin blocks.",
+    site: "@WhenReset",
+    creator: "@WhenReset",
+    images: ["https://whenreset.top/opengraph-image"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

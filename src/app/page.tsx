@@ -1,70 +1,97 @@
+"use client";
+
+import React, { useState } from "react";
 import fallbackResets from "@/data/fallback-resets.json";
-import { calculateStats, formatRelativeTime, formatUtcTime } from "@/lib/utils";
+import { calculateStats } from "@/lib/utils";
 import { ResetItem } from "@/lib/types";
+import { MarioHeader } from "@/components/mario/MarioHeader";
+import { MarioHero } from "@/components/mario/MarioHero";
+import { MarioStats } from "@/components/mario/MarioStats";
+import { MarioWatch } from "@/components/mario/MarioWatch";
+import { MarioHeatmap } from "@/components/mario/MarioHeatmap";
+import { MarioLog } from "@/components/mario/MarioLog";
+import { MarioSponsors } from "@/components/mario/MarioSponsors";
+import { MarioSubscribe } from "@/components/mario/MarioSubscribe";
 
 export default function Home() {
+  const [isSubscribeOpen, setIsSubscribeOpen] = useState<boolean>(false);
+
   const resets = fallbackResets as ResetItem[];
   const stats = calculateStats(resets);
   const latest = resets[0];
 
   return (
-    <main className="min-h-screen bg-[#0F111A] text-white p-4 md:p-8 flex flex-col items-center">
-      {/* Test Banner for Card when-20260910-01 */}
-      <div className="w-full max-w-4xl border-[3px] border-black bg-[#181B26] p-6 shadow-pixel mb-8">
-        <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🍄</span>
-            <h1 className="font-pixel text-lg md:text-xl text-mario-coin">
-              WHENRESET: MARIO EDITION
-            </h1>
+    <main className="min-h-screen bg-mario-dark text-white p-3 sm:p-6 md:p-10 flex flex-col items-center selection:bg-mario-coin selection:text-black">
+      {/* Decoupled Retro Top Arcade HUD */}
+      <MarioHeader
+        totalResets={stats.total}
+        onOpenSubscribe={() => setIsSubscribeOpen(true)}
+      />
+
+      {/* Main Hero: Question Block & Giant Countdown Clock */}
+      {latest && <MarioHero latestReset={latest} />}
+
+      {/* Statistics Section: 3 Classic NES Metric Blocks */}
+      <MarioStats stats={stats} />
+
+      {/* Stage 1-2: Bowser Castle Radar Watch & Community Bet */}
+      <MarioWatch stats={stats} latestReset={latest} />
+
+      {/* Stage 1-2: 26-Week Super Stage Pixel Heatmap */}
+      <MarioHeatmap resets={resets} />
+
+      {/* Stage 1-3: Full Quests Stream Timeline */}
+      <MarioLog resets={resets} />
+
+      {/* Stage 1-3: 8-Bit Item Shop & Power-Up Rail */}
+      <MarioSponsors />
+
+      {/* Level Map / Stage Progression Road */}
+      <section className="w-full max-w-5xl my-4 border-2 border-black bg-[#181B26] p-4 shadow-pixel rounded-none">
+        <div className="flex items-center justify-between mb-3 border-b border-gray-800 pb-2">
+          <div className="font-pixel text-xs text-mario-coin flex items-center gap-2">
+            <span>🗺️</span>
+            <span>WORLD PROGRESSION ROUTE</span>
           </div>
-          <span className="font-pixel text-xs bg-mario-green text-black px-2 py-1">
-            STAGE 1 READY
+          <span className="font-pixel text-[10px] text-mario-green bg-black px-2 py-0.5 border border-mario-green">
+            STAGE 1-3 CLEARED
           </span>
         </div>
 
-        <p className="text-sm text-gray-300 mb-4">
-          Base scaffold &amp; 53 fallback data successfully loaded. Next.js 15 App Router &amp; API routes operational.
-        </p>
-
-        {/* Quick Data Verification Box */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 font-pixel text-xs">
-          <div className="border-2 border-black bg-[#0F111A] p-3 shadow-pixel-sm">
-            <div className="text-gray-400 mb-1">TOTAL RESETS</div>
-            <div className="text-xl text-mario-coin">{stats.total}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-pixel text-[10px]">
+          <div className="border-2 border-mario-green bg-[#0F111A] p-3 text-mario-green shadow-pixel-sm">
+            <div className="font-bold text-xs mb-1">STAGE 1-1</div>
+            <div className="text-white font-mono text-xs">HERO CLOCK &amp; STATS</div>
+            <div className="mt-2 text-[10px] text-mario-green">✓ COMPLETE</div>
           </div>
-          <div className="border-2 border-black bg-[#0F111A] p-3 shadow-pixel-sm">
-            <div className="text-gray-400 mb-1">AVG INTERVAL</div>
-            <div className="text-xl text-mario-green">{stats.avg_interval_days}d</div>
+          <div className="border-2 border-mario-green bg-[#0F111A] p-3 text-mario-green shadow-pixel-sm">
+            <div className="font-bold text-xs mb-1 text-mario-red">STAGE 1-2</div>
+            <div className="text-white font-mono text-xs">BOWSER CASTLE &amp; HEATMAP</div>
+            <div className="mt-2 text-[10px] text-mario-green">✓ COMPLETE</div>
           </div>
-          <div className="border-2 border-black bg-[#0F111A] p-3 shadow-pixel-sm">
-            <div className="text-gray-400 mb-1">LONGEST WAIT</div>
-            <div className="text-xl text-mario-red">{stats.longest_wait_days}d</div>
+          <div className="border-2 border-mario-green bg-[#0F111A] p-3 text-mario-green shadow-pixel-sm">
+            <div className="font-bold text-xs mb-1 text-mario-coin">STAGE 1-3</div>
+            <div className="text-white font-mono text-xs">CHRONICLES &amp; COMM RADAR</div>
+            <div className="mt-2 text-[10px] text-mario-green">✓ COMPLETE</div>
           </div>
         </div>
+      </section>
 
-        {/* Latest Reset Detail */}
-        {latest && (
-          <div className="border-2 border-black bg-[#0F111A] p-4 text-xs font-mono">
-            <div className="font-pixel text-mario-coin text-xs mb-2 flex items-center gap-2">
-              <span>🪙</span> LATEST DETECTED RESET ({latest.reset_type.toUpperCase()})
-            </div>
-            <div className="text-gray-300 mb-2 font-bold">{latest.text}</div>
-            <div className="text-gray-500 text-[11px] flex flex-wrap gap-4">
-              <span>Time: {formatUtcTime(latest.announced_at)}</span>
-              <span>({formatRelativeTime(latest.announced_at)})</span>
-              <a
-                href={latest.source.url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-400 underline hover:text-blue-300"
-              >
-                View on X &rarr;
-              </a>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* NES Retro Footer */}
+      <footer className="w-full max-w-5xl mt-6 mb-8 text-center text-xs font-mono text-gray-400 border-t-2 border-black pt-6">
+        <p className="font-pixel text-[10px] text-mario-coin mb-2">
+          &ldquo;THANK YOU MARIO! BUT OUR QUOTA IS IN ANOTHER CASTLE!&rdquo;
+        </p>
+        <p className="text-[11px] text-gray-500">
+          WHENRESET is an independent 8-bit retro tracker for OpenAI Codex quotas. All trademarks belong to their respective owners.
+        </p>
+      </footer>
+
+      {/* Toad Comm Station Modal (Controlled) */}
+      <MarioSubscribe
+        isOpen={isSubscribeOpen}
+        onClose={() => setIsSubscribeOpen(false)}
+      />
     </main>
   );
 }

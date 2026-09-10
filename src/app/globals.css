@@ -98,3 +98,52 @@ body {
     rgba(0, 0, 0, 0.15) 50%
   );
 }
+
+@keyframes questionGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 0px #FBD000);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px #FBD000);
+  }
+}
+
+.animate-question-glow {
+  animation: questionGlow 2.4s infinite ease-in-out;
+}
+
+/* Bowser Castle Red Alert Pulse */
+@keyframes castlePulse {
+  0%, 100% {
+    border-color: #E52521;
+    box-shadow: 4px 4px 0px #000000, 0 0 12px rgba(229, 37, 33, 0.4);
+  }
+  50% {
+    border-color: #B84418;
+    box-shadow: 4px 4px 0px #000000, 0 0 4px rgba(229, 37, 33, 0.1);
+  }
+}
+
+.animate-castle-pulse {
+  animation: castlePulse 1.8s infinite ease-in-out;
+}
+
+/* NES Custom Scrollbar for Heatmap */
+.pixel-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.pixel-scrollbar::-webkit-scrollbar-track {
+  background: #0F111A;
+  border: 1px solid #000000;
+}
+
+.pixel-scrollbar::-webkit-scrollbar-thumb {
+  background: #FBD000;
+  border: 1px solid #000000;
+}
+
+.pixel-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #FED626;
+}
+
