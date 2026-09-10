@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-sky: #5C94FC;
+  --bg-ground: #00A800;
+  --bg-dark: #0F111A;
+  --card-light: #FFFFFF;
+  --card-dark: #181B26;
+}
+
+body {
+  font-family: 'JetBrains Mono', monospace;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+}
+
+/* NES Retro Pixel Rules */
+.pixel-border {
+  border: 3px solid #000000;
+  box-shadow: 4px 4px 0px #000000;
+}
+
+.pixel-border-sm {
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.pixel-btn {
+  border: 3px solid #000000;
+  box-shadow: 4px 4px 0px #000000;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+  user-select: none;
+}
+
+.pixel-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+.pixel-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px #000000;
+}
+
+/* Coin Pop & Block Hit Animations */
+@keyframes coinPop {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.2);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-50px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-70px) scale(0.7);
+  }
+}
+
+.animate-coin-pop {
+  animation: coinPop 0.65s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+@keyframes blockHit {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-8px); }
+  60% { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+
+.animate-block-hit {
+  animation: blockHit 0.22s ease-out;
+}
+
+@keyframes pixelBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.animate-pixel-blink {
+  animation: pixelBlink 0.9s infinite steps(1);
+}
+
+/* 8-bit Scanline / Mesh Effect */
+.bg-scanline {
+  background-size: 100% 4px;
+  background-image: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.15) 50%
+  );
+}
