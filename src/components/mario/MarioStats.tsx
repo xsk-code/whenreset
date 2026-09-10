@@ -1,47 +1,52 @@
+"use client";
+
 import React from "react";
 import { StatusStats } from "@/lib/types";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioStatsProps {
   stats: StatusStats;
 }
 
 export function MarioStats({ stats }: MarioStatsProps) {
+  const { t } = useLanguage();
+
   const statCards = [
     {
       id: "total_resets",
-      label: "TOTAL RESETS",
+      label: t.stats.totalResets.label,
       value: stats.total.toString(),
       unit: "",
       icon: "🪙",
       accentColor: "text-mario-coin",
-      badge: "CLEARED",
+      badge: t.stats.totalResets.badge,
       badgeColor: "bg-mario-coin text-black",
-      desc: "Total recorded quota resets to date",
-      footer: "Historical all-time counter",
+      desc: t.stats.totalResets.desc,
+      footer: t.stats.totalResets.footer,
     },
     {
       id: "avg_interval",
-      label: "AVG MIRACLE INTERVAL",
+      label: t.stats.avgInterval.label,
       value: `${stats.avg_interval_days.toFixed(1)}`,
-      unit: "DAYS",
+      unit: t.stats.avgInterval.unit,
       icon: "🍄",
       accentColor: "text-mario-green",
-      badge: "CYCLE ~7D",
+      badge: t.stats.avgInterval.badge,
       badgeColor: "bg-mario-green text-black",
-      desc: "Mean interval between drops",
-      footer: "Expected refresh cadence",
+      desc: t.stats.avgInterval.desc,
+      footer: t.stats.avgInterval.footer,
     },
     {
       id: "longest_wait",
-      label: "LONGEST WAIT",
+      label: t.stats.longestWait.label,
       value: `${stats.longest_wait_days.toFixed(1)}`,
-      unit: "DAYS",
+      unit: t.stats.longestWait.unit,
       icon: "🏰",
       accentColor: "text-mario-red",
-      badge: "RECORD DROUGHT",
+      badge: t.stats.longestWait.badge,
       badgeColor: "bg-mario-red text-white",
-      desc: "Longest drought without quota drop",
-      footer: "Historical maximum gap",
+      desc: t.stats.longestWait.desc,
+      footer: t.stats.longestWait.footer,
     },
   ];
 
@@ -51,10 +56,10 @@ export function MarioStats({ stats }: MarioStatsProps) {
       <div className="flex items-center justify-between mb-4 border-b-2 border-black pb-2">
         <div className="flex items-center gap-2 font-pixel text-xs sm:text-sm text-mario-coin">
           <span>⭐</span>
-          <span>LEVEL 1-1 STATISTICS LOG</span>
+          <span>{t.stats.title}</span>
         </div>
         <span className="font-pixel text-[10px] text-gray-400">
-          ALL TIME METRICS
+          {t.stats.subtitle}
         </span>
       </div>
 

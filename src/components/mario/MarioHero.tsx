@@ -11,6 +11,7 @@ import {
   cn,
 } from "@/lib/utils";
 import { Volume2, VolumeX, ExternalLink, Clock } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioHeroProps {
   latestReset: ResetItem;
@@ -45,6 +46,7 @@ function calculateElapsed(announcedAt: string): ElapsedTime {
 }
 
 export function MarioHero({ latestReset }: MarioHeroProps) {
+  const { language, t } = useLanguage();
   const [elapsed, setElapsed] = useState<ElapsedTime>(() =>
     calculateElapsed(latestReset.announced_at)
   );
@@ -114,10 +116,10 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
           </span>
           <div>
             <h2 className="font-pixel text-xs sm:text-sm md:text-base text-mario-coin">
-              TIME SINCE LAST CODEX RESET
+              {t.hero.title}
             </h2>
             <div className="text-[11px] font-mono text-gray-400 mt-0.5">
-              WORLD 1-1 • NES RADAR CLOCK
+              {t.hero.stageTag}
             </div>
           </div>
         </div>
@@ -131,12 +133,12 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
           {soundEnabled ? (
             <>
               <Volume2 size={13} className="text-mario-green" />
-              <span>SFX: ON</span>
+              <span>{t.hero.sfxOn}</span>
             </>
           ) : (
             <>
               <VolumeX size={13} className="text-mario-red" />
-              <span>SFX: OFF</span>
+              <span>{t.hero.sfxOff}</span>
             </>
           )}
         </button>
@@ -151,7 +153,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
             <div
               role="button"
               tabIndex={0}
-              aria-label="Hit Question Block for 1-UP and Coins"
+              aria-label={t.hero.hitBlockAria}
               onClick={handleHitBlock}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -193,7 +195,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                 >
                   {coin.isBonus ? (
                     <span className="text-mario-green bg-black px-1 border border-mario-green">
-                      🍄 1-UP!
+                      {t.hero.bonusCoin}
                     </span>
                   ) : (
                     <>
@@ -215,7 +217,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                   : "bg-mario-coin text-black hover:bg-[#fed626]"
               )}
             >
-              {isRecentReset ? "[ 🍄 Thank You Mario! ]" : "[ ❓ Hit for 1-UP ]"}
+              {isRecentReset ? t.hero.hitBlockButtonActive : t.hero.hitBlockButtonNormal}
             </button>
 
             {/* Score & Coin HUD Under Block */}
@@ -224,7 +226,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                 <span>🪙</span> x{coinCount.toString().padStart(2, "0")}
               </span>
               <span className="text-gray-400">
-                SCORE {score.toString().padStart(6, "0")}
+                {t.hero.score} {score.toString().padStart(6, "0")}
               </span>
             </div>
           </div>
@@ -243,7 +245,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                 {elapsed.days.toString().padStart(2, "0")}
               </div>
               <div className="font-pixel text-[9px] sm:text-[10px] md:text-xs text-gray-400 mt-2 uppercase">
-                DAYS
+                {t.hero.days}
               </div>
             </div>
 
@@ -256,7 +258,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                 {elapsed.hours.toString().padStart(2, "0")}
               </div>
               <div className="font-pixel text-[9px] sm:text-[10px] md:text-xs text-gray-400 mt-2 uppercase">
-                HOURS
+                {t.hero.hours}
               </div>
             </div>
 
@@ -269,7 +271,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                 {elapsed.minutes.toString().padStart(2, "0")}
               </div>
               <div className="font-pixel text-[9px] sm:text-[10px] md:text-xs text-gray-400 mt-2 uppercase">
-                MINS
+                {t.hero.mins}
               </div>
             </div>
 
@@ -282,7 +284,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                 {elapsed.seconds.toString().padStart(2, "0")}
               </div>
               <div className="font-pixel text-[9px] sm:text-[10px] md:text-xs text-gray-400 mt-2 uppercase">
-                SECS
+                {t.hero.secs}
               </div>
             </div>
           </div>
@@ -294,11 +296,11 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
               <div className="flex items-center gap-1.5 text-mario-coin font-bold">
                 <Clock size={14} />
                 <span suppressHydrationWarning>
-                  {formatRelativeTime(latestReset.announced_at)}
+                  {formatRelativeTime(latestReset.announced_at, language)}
                 </span>
               </div>
               <div className="text-gray-400">
-                UTC:{" "}
+                {t.common.utc}:{" "}
                 <span className="text-white font-mono font-bold">
                   {formatUtcTime(latestReset.announced_at)}
                 </span>
@@ -311,20 +313,20 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 bg-mario-red text-white border-2 border-black font-pixel text-[10px] sm:text-xs px-2.5 py-1 shadow-pixel-sm rounded-none">
                     <span>🍄</span>
-                    <span>BANKED RESET</span>
+                    <span>{t.hero.bankedReset}</span>
                   </span>
                   <span className="hidden sm:inline font-mono text-[11px] text-gray-400">
-                    (Extra Bucket Applied)
+                    {t.hero.bankedDesc}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 bg-mario-green text-black border-2 border-black font-pixel text-[10px] sm:text-xs px-2.5 py-1 shadow-pixel-sm rounded-none">
                     <span>⭐</span>
-                    <span>REGULAR RESET</span>
+                    <span>{t.hero.regularReset}</span>
                   </span>
                   <span className="hidden sm:inline font-mono text-[11px] text-gray-400">
-                    (Standard Scheduled)
+                    {t.hero.regularDesc}
                   </span>
                 </div>
               )}
@@ -336,7 +338,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
             <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-gray-800">
               <div className="flex items-center gap-2 font-pixel text-[11px] text-mario-coin">
                 <span>📡</span>
-                <span>LATEST ANNOUNCEMENT INTEL</span>
+                <span>{t.hero.latestIntel}</span>
               </div>
               <a
                 href={latestReset.source.url}
@@ -344,7 +346,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
                 rel="noreferrer"
                 className="font-pixel text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1 underline"
               >
-                <span>X POST</span>
+                <span>{t.hero.xPost}</span>
                 <ExternalLink size={12} />
               </a>
             </div>
@@ -352,9 +354,9 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
               &ldquo;{latestReset.text}&rdquo;
             </p>
             <div className="mt-2 text-[11px] font-mono text-gray-400 flex items-center justify-between">
-              <span>Author: @{latestReset.source.author || "OpenAI"}</span>
+              <span>{t.hero.author}: @{latestReset.source.author || "OpenAI"}</span>
               <span className="text-gray-500">
-                Ref ID: {latestReset.id.slice(0, 12)}...
+                {t.hero.refId}: {latestReset.id.slice(0, 12)}...
               </span>
             </div>
           </div>

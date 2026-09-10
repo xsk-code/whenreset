@@ -17,6 +17,7 @@ import {
   Sparkles,
   HelpCircle,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioMcpModalProps {
   isOpen: boolean;
@@ -58,6 +59,7 @@ curl -s -X POST https://whenreset.top/api/mcp \\
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_codex_reset_status","arguments":{}}}'`;
 
 export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("cursor");
   const [copied, setCopied] = useState<boolean>(false);
 
@@ -140,13 +142,13 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
                 id="mcp-modal-title"
                 className="font-pixel text-xs sm:text-sm text-mario-coin flex items-center gap-2"
               >
-                <span>MCP PROTOCOL RADAR</span>
+                <span>{t.mcp.title}</span>
                 <span className="text-[9px] bg-mario-green text-black px-1.5 py-0.5 border border-black">
-                  DEV ECO
+                  {t.mcp.tag}
                 </span>
               </h3>
               <p className="font-mono text-[10px] text-gray-400">
-                Model Context Protocol (JSON-RPC 2.0 &amp; REST) for AI Coding Agents
+                {t.mcp.subtitle}
               </p>
             </div>
           </div>
@@ -169,7 +171,7 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
           <div className="flex items-start gap-2">
             <Sparkles className="w-4 h-4 text-mario-coin shrink-0 mt-0.5" />
             <p className="text-gray-300 leading-relaxed text-[11px] sm:text-xs">
-              Equip your AI Agents (Cursor, Claude Desktop, Windsurf, Roo Code) with native WhenReset quota intelligence. Agents can autonomously query real-time surge levels and historical reset intervals.
+              {t.mcp.intro}
             </p>
           </div>
         </div>
@@ -222,9 +224,9 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
           <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 mb-2 border-b border-gray-800 pb-1.5">
             <span className="flex items-center gap-1 text-mario-green">
               <span>●</span>
-              {activeTab === "cursor" && "Add to ~/.cursor/mcp.json or Cursor Settings > MCP"}
-              {activeTab === "claude" && "Add to claude_desktop_config.json"}
-              {activeTab === "curl" && "Direct Terminal / HTTP REST Execution"}
+              {activeTab === "cursor" && t.mcp.tabCursorHint}
+              {activeTab === "claude" && t.mcp.tabClaudeHint}
+              {activeTab === "curl" && t.mcp.tabCurlHint}
             </span>
             <span className="text-gray-500 font-pixel text-[9px]">
               {activeTab === "curl" ? "BASH" : "JSON"}
@@ -240,7 +242,7 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
           <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
             <div className="text-[10px] font-mono text-gray-400 flex items-center gap-1">
               <HelpCircle className="w-3 h-3 text-mario-coin" />
-              <span>Public endpoint &bull; Zero API keys required</span>
+              <span>{t.mcp.publicEndpointHint}</span>
             </div>
 
             <button
@@ -255,12 +257,12 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-black" />
-                  <span>[ 🍄 COPIED CONFIG! ]</span>
+                  <span>{t.mcp.copiedBtn}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  <span>[ 📋 COPY CONFIG ]</span>
+                  <span>{t.mcp.copyBtn}</span>
                 </>
               )}
             </button>
@@ -271,7 +273,7 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
         <div className="border-t-2 border-black pt-4">
           <div className="font-pixel text-[10px] text-mario-coin mb-2.5 flex items-center gap-1.5">
             <span>🛠️</span>
-            <span>AVAILABLE MCP TOOLS DEFINED</span>
+            <span>{t.mcp.toolsDefined}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 font-mono text-xs">
@@ -279,10 +281,10 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
             <div className="p-2.5 border-2 border-black bg-[#0F111A] shadow-pixel-sm">
               <div className="flex items-center gap-1.5 font-pixel text-[9px] text-mario-coin mb-1">
                 <span>⚡</span>
-                <span className="text-white">check_codex_reset_status</span>
+                <span className="text-white">{t.mcp.tool1Title}</span>
               </div>
               <p className="text-[11px] text-gray-400 leading-normal">
-                Returns reset forecast probability (%), days since last reset, average cadence, and threat level (<code>NORMAL</code>, <code>ELEVATED</code>, <code>CRITICAL</code>).
+                {t.mcp.tool1Desc}
               </p>
             </div>
 
@@ -290,10 +292,10 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
             <div className="p-2.5 border-2 border-black bg-[#0F111A] shadow-pixel-sm">
               <div className="flex items-center gap-1.5 font-pixel text-[9px] text-mario-coin mb-1">
                 <span>📜</span>
-                <span className="text-white">get_recent_resets</span>
+                <span className="text-white">{t.mcp.tool2Title}</span>
               </div>
               <p className="text-[11px] text-gray-400 leading-normal">
-                Retrieves the latest <i>N</i> official quota reset records, UTC timestamps, reset type (Regular/Banked), and direct official X/Twitter links.
+                {t.mcp.tool2Desc}
               </p>
             </div>
           </div>
@@ -301,7 +303,7 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
 
         {/* Modal Footer Tip */}
         <div className="mt-4 pt-3 border-t border-black/40 flex flex-col sm:flex-row items-center justify-between text-center sm:text-left gap-2 text-gray-500 font-pixel text-[9px]">
-          <div>PRESS [ESC] OR CLICK OUTSIDE TO RETURN</div>
+          <div>{t.mcp.footerReturn}</div>
           <a
             href="/api/mcp"
             target="_blank"
@@ -312,7 +314,7 @@ export function MarioMcpModal({ isOpen, onClose }: MarioMcpModalProps) {
             }}
             className="text-mario-coin hover:underline inline-flex items-center gap-1 font-mono text-[10px]"
           >
-            <span>Inspect Raw /api/mcp</span>
+            <span>{t.mcp.rawMcp}</span>
             <ExternalLink className="w-2.5 h-2.5" />
           </a>
         </div>

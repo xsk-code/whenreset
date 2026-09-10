@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { playMarioCoinSound, triggerHaptic } from "@/lib/utils";
-import { Bell, ExternalLink, Zap } from "lucide-react";
+import { Bell, ExternalLink, Zap, Languages } from "lucide-react";
 import { MarioMcpModal } from "./MarioMcpModal";
 import { MarioLogo } from "./MarioLogo";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioHeaderProps {
   totalResets: number;
@@ -14,6 +15,7 @@ interface MarioHeaderProps {
 
 export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHeaderProps) {
   const [isMcpOpen, setIsMcpOpen] = useState(false);
+  const { language, toggleLanguage, t } = useLanguage();
 
   const handleNotifyClick = () => {
     playMarioCoinSound();
@@ -29,6 +31,12 @@ export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHe
     } else {
       setIsMcpOpen(true);
     }
+  };
+
+  const handleLangToggle = () => {
+    playMarioCoinSound();
+    triggerHaptic(12);
+    toggleLanguage();
   };
 
   const handleLinkClick = () => {
@@ -56,14 +64,14 @@ export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHe
 
             {/* World indicator */}
             <div className="flex items-center gap-2">
-              <span className="text-gray-400">WORLD</span>
+              <span className="text-gray-400">{t.header.world}</span>
               <span className="text-white">1-3</span>
             </div>
 
             {/* Live Radar Pulsing Beacon */}
             <div className="flex items-center gap-1.5 bg-[#0F111A] px-2 py-0.5 border border-black shadow-pixel-sm">
               <span className="inline-block w-2 h-2 bg-mario-green animate-pixel-blink" />
-              <span className="text-mario-green text-[9px] sm:text-[10px]">LIVE RADAR</span>
+              <span className="text-mario-green text-[9px] sm:text-[10px]">{t.header.liveRadar}</span>
             </div>
           </div>
         </div>
@@ -80,20 +88,30 @@ export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHe
                 </span>
               </h1>
               <p className="font-mono text-xs text-gray-400 mt-1">
-                Retro 8-bit OpenAI Codex quota reset tracking terminal
+                {t.header.subtitle}
               </p>
             </div>
           </div>
 
           {/* Action Controls & Endpoints */}
           <div className="flex flex-wrap items-center gap-2 font-pixel text-[10px]">
+            {/* Language Switcher */}
+            <button
+              onClick={handleLangToggle}
+              className="pixel-btn px-2.5 py-1.5 bg-[#0F111A] text-mario-coin border-2 border-black shadow-pixel-sm hover:bg-mario-coin hover:text-black flex items-center gap-1.5 font-bold cursor-pointer rounded-none transition-all"
+              title={language === "zh" ? "Switch to English" : "切换为中文"}
+            >
+              <Languages className="w-3.5 h-3.5" />
+              <span>[ 🌐 {language === "zh" ? "EN" : "中文"} ]</span>
+            </button>
+
             {/* Notify Me Trigger Button */}
             <button
               onClick={handleNotifyClick}
               className="pixel-btn px-3 py-1.5 bg-mario-coin text-black border-2 border-black shadow-pixel-sm hover:bg-[#FED626] flex items-center gap-1.5 font-bold cursor-pointer rounded-none"
             >
               <Bell className="w-3 h-3" />
-              <span>[ 🔔 NOTIFY ME ]</span>
+              <span>{t.header.notifyMe}</span>
             </button>
 
             {/* MCP for Cursor Button */}
@@ -102,7 +120,7 @@ export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHe
               className="pixel-btn px-3 py-1.5 bg-mario-green text-black border-2 border-black shadow-pixel-sm hover:bg-[#00D000] flex items-center gap-1.5 font-bold cursor-pointer rounded-none"
             >
               <Zap className="w-3 h-3 text-black fill-black" />
-              <span>[ ⚡ MCP FOR CURSOR ]</span>
+              <span>{t.header.mcpBtn}</span>
             </button>
 
             {/* API Endpoints */}

@@ -9,6 +9,7 @@ import {
   cn,
 } from "@/lib/utils";
 import { Flame, AlertTriangle, Share2, Check, ExternalLink } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioWatchProps {
   stats: StatusStats;
@@ -22,6 +23,7 @@ const BASELINE_YES_VOTES = 724;
 const BASELINE_NO_VOTES = 246;
 
 export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
+  const { t } = useLanguage();
   const [userBet, setUserBet] = useState<BetChoice | null>(null);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
@@ -71,10 +73,10 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
   const isElevated = probability >= 45 && probability < 75;
 
   const threatLabel = isCritical
-    ? "THREAT LEVEL: CRITICAL SURGE"
+    ? t.watch.threatCritical
     : isElevated
-    ? "THREAT LEVEL: ELEVATED RUMBLE"
-    : "THREAT LEVEL: LOW ACTIVITY";
+    ? t.watch.threatElevated
+    : t.watch.threatLow;
 
   const threatColor = isCritical
     ? "text-mario-red"
@@ -83,16 +85,14 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
     : "text-mario-green";
 
   // Twitter share intent text
-  const shareText =
-    `🏰 Bowser Castle Alert on WhenReset!\n\n` +
-    `🔥 Quota Drop Probability: ${probability}% Chance\n` +
-    `⏱️ Days Since Last Reset: ${stats.days_since_last.toFixed(1)}d (Avg Cadence: ~${stats.avg_interval_days.toFixed(1)}d)\n` +
-    `🎲 Community Bet: ${yesPercentage}% YES vs ${noPercentage}% NO\n` +
-    (userBet
-      ? `🎯 My Bet: ${userBet === "yes" ? "🍄 IMMINENT (<24h)" : "👾 LONGER WAIT"}\n\n`
-      : "\n") +
-    `Track the 8-bit live radar:\nhttps://whenreset.top\n` +
-    `#OpenAI #Codex #WhenReset #ChatGPT`;
+  const shareText = t.watch.shareText(
+    probability,
+    stats.days_since_last.toFixed(1),
+    stats.avg_interval_days.toFixed(1),
+    yesPercentage,
+    noPercentage,
+    userBet
+  );
 
   const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     shareText
@@ -125,7 +125,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-pixel text-xs sm:text-sm md:text-base text-mario-red">
-                  BOWSER CASTLE RADAR ALERT
+                  {t.watch.title}
                 </h2>
                 <span
                   className={cn(
@@ -137,11 +137,11 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
                       : "bg-mario-green text-black"
                   )}
                 >
-                  STAGE 1-2
+                  {t.watch.stageTag}
                 </span>
               </div>
               <p className="font-mono text-[11px] text-gray-400 mt-1">
-                Dynamic quota refresh probability &amp; community prediction desk
+                {t.watch.subtitle}
               </p>
             </div>
           </div>
@@ -161,7 +161,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
           <div className="lg:col-span-5 bg-[#0F111A] border-2 border-black p-4 sm:p-5 shadow-pixel-sm flex flex-col items-center justify-center text-center">
             <div className="flex items-center gap-2 text-xs font-pixel text-gray-400 mb-2">
               <Flame size={15} className="text-mario-red animate-bounce" />
-              <span>REFRESH PROBABILITY</span>
+              <span>{t.watch.refreshProbability}</span>
             </div>
 
             <div className="flex items-baseline gap-1 my-1">
@@ -178,36 +178,36 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
                 {probability}%
               </span>
               <span className="font-pixel text-sm sm:text-base text-gray-400">
-                CHANCE
+                {t.watch.chance}
               </span>
             </div>
 
             <p className="font-mono text-xs text-gray-300 mt-2 max-w-xs leading-relaxed">
               {isCritical
-                ? "Castle tremors detected! Quota refresh is statistically imminent."
+                ? t.watch.criticalDesc
                 : isElevated
-                ? "Lava heat rising. Quota refresh window is approaching average cycle."
-                : "Dungeon calm. Quota was renewed recently; Bowser minions on patrol."}
+                ? t.watch.elevatedDesc
+                : t.watch.lowDesc}
             </p>
 
             {/* Quick Metrics Bar Under Big Chance */}
             <div className="mt-4 pt-3 border-t border-gray-800 w-full flex items-center justify-around font-mono text-[11px] text-gray-400">
               <div>
-                <span className="text-gray-500 block">ELAPSED</span>
+                <span className="text-gray-500 block">{t.watch.elapsed}</span>
                 <span className="text-white font-bold font-pixel text-[10px]">
                   {stats.days_since_last.toFixed(1)}d
                 </span>
               </div>
               <div className="h-6 w-px bg-gray-800" />
               <div>
-                <span className="text-gray-500 block">AVG CADENCE</span>
+                <span className="text-gray-500 block">{t.watch.avgCadence}</span>
                 <span className="text-mario-coin font-bold font-pixel text-[10px]">
                   ~{stats.avg_interval_days.toFixed(1)}d
                 </span>
               </div>
               <div className="h-6 w-px bg-gray-800" />
               <div>
-                <span className="text-gray-500 block">MAX RECORD</span>
+                <span className="text-gray-500 block">{t.watch.maxRecord}</span>
                 <span className="text-mario-red font-bold font-pixel text-[10px]">
                   {stats.longest_wait_days.toFixed(1)}d
                 </span>
@@ -220,7 +220,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             {/* Probability Progress Bar */}
             <div>
               <div className="flex items-center justify-between font-pixel text-[10px] text-gray-300 mb-2">
-                <span>RADAR PROBABILITY GAUGE</span>
+                <span>{t.watch.radarGauge}</span>
                 <span className={threatColor}>{probability}% / 100%</span>
               </div>
               <div className="h-6 w-full border-[3px] border-black bg-[#0F111A] p-0.5 shadow-pixel-sm rounded-none">
@@ -237,10 +237,10 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
                 />
               </div>
               <div className="flex justify-between text-[10px] font-mono text-gray-500 mt-1">
-                <span>0% Calm</span>
-                <span>50% Mid-Cycle</span>
-                <span>75% Target Window</span>
-                <span>100% Red Alert</span>
+                <span>{t.watch.gaugeMarks.calm}</span>
+                <span>{t.watch.gaugeMarks.mid}</span>
+                <span>{t.watch.gaugeMarks.target}</span>
+                <span>{t.watch.gaugeMarks.red}</span>
               </div>
             </div>
 
@@ -248,26 +248,15 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             <div className="border-2 border-black bg-[#0F111A] p-3 sm:p-4 rounded-none shadow-pixel-sm">
               <div className="flex items-center gap-2 font-pixel text-[11px] text-mario-coin mb-2">
                 <AlertTriangle size={14} className="text-mario-coin" />
-                <span>RADAR ANALYSIS &amp; CYCLE DRIFT</span>
+                <span>{t.watch.radarAnalysisTitle}</span>
               </div>
               <p className="font-mono text-xs text-gray-300 leading-relaxed">
-                OpenAI Codex historically resets on an average cadence of{" "}
-                <span className="text-mario-coin font-bold">
-                  {stats.avg_interval_days.toFixed(1)} days
-                </span>
-                . With{" "}
-                <span className="text-white font-bold">
-                  {stats.days_since_last.toFixed(1)} days
-                </span>{" "}
-                elapsed since the last reset on{" "}
-                <span className="text-gray-200">
-                  {latestReset ? latestReset.announced_at.slice(0, 10) : "recently"}
-                </span>
-                , our 8-bit model projects a{" "}
-                <span className={cn("font-bold", threatColor)}>
-                  {probability}% likelihood
-                </span>{" "}
-                of quota drops occurring within the immediate operational window.
+                {t.watch.radarAnalysisText(
+                  stats.avg_interval_days.toFixed(1),
+                  stats.days_since_last.toFixed(1),
+                  latestReset ? latestReset.announced_at.slice(0, 10) : "recently",
+                  probability
+                )}
               </p>
             </div>
           </div>
@@ -278,16 +267,16 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2 font-pixel text-xs sm:text-sm text-mario-coin">
               <span>🎲</span>
-              <span>COMMUNITY PROP BET: WILL QUOTA RESET IN &lt;24 HOURS?</span>
+              <span>{t.watch.betTitle}</span>
             </div>
             <span className="font-mono text-xs text-gray-400">
-              Total Bets Cast:{" "}
+              {t.watch.totalBets}{" "}
               <span className="text-white font-bold">{totalVotes}</span>
             </span>
           </div>
 
           <p className="font-mono text-xs text-gray-400 mb-4">
-            Pick your side and place your pixel token. Stored locally in your retro cart memory!
+            {t.watch.betDesc}
           </p>
 
           {/* Voting Action Buttons */}
@@ -305,15 +294,15 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
               <div className="flex items-center gap-2">
                 <span className="text-lg">🍄</span>
                 <div className="text-left">
-                  <div className="font-bold">[ YES - IMMINENT (&lt;24h) ]</div>
+                  <div className="font-bold">{t.watch.yesLabel}</div>
                   <div className="font-mono text-[11px] opacity-80 mt-0.5">
-                    Expect quota drop very soon
+                    {t.watch.yesSub}
                   </div>
                 </div>
               </div>
               {isClient && userBet === "yes" && (
                 <span className="font-pixel text-[10px] bg-black text-mario-green px-2 py-1 border border-mario-green flex items-center gap-1">
-                  <Check size={12} /> YOUR BET
+                  <Check size={12} /> {t.watch.yourBet}
                 </span>
               )}
             </button>
@@ -331,15 +320,15 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
               <div className="flex items-center gap-2">
                 <span className="text-lg">👾</span>
                 <div className="text-left">
-                  <div className="font-bold">[ NO - LONGER WAIT ]</div>
+                  <div className="font-bold">{t.watch.noLabel}</div>
                   <div className="font-mono text-[11px] opacity-80 mt-0.5">
-                    Bowser will hold the gates
+                    {t.watch.noSub}
                   </div>
                 </div>
               </div>
               {isClient && userBet === "no" && (
                 <span className="font-pixel text-[10px] bg-black text-mario-red px-2 py-1 border border-mario-red flex items-center gap-1">
-                  <Check size={12} /> YOUR BET
+                  <Check size={12} /> {t.watch.yourBet}
                 </span>
               )}
             </button>
@@ -378,10 +367,10 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             <div className="text-xs font-mono text-gray-400">
               {isClient && userBet ? (
                 <span className="text-mario-coin">
-                  ★ Your prediction is locked: {userBet === "yes" ? "IMMINENT RESET" : "LONGER WAIT"}. Share it on X!
+                  {t.watch.betLocked(userBet === "yes" ? t.watch.yesLabel : t.watch.noLabel)}
                 </span>
               ) : (
-                <span>Cast a vote to unlock your prediction card.</span>
+                <span>{t.watch.betPlaceholder}</span>
               )}
             </div>
 
@@ -392,7 +381,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
                 title="Copy Prediction Text"
               >
                 {copiedLink ? <Check size={12} className="text-mario-green" /> : <Share2 size={12} />}
-                <span>{copiedLink ? "COPIED!" : "COPY BET"}</span>
+                <span>{copiedLink ? t.watch.copied : t.watch.copyBet}</span>
               </button>
 
               <a
@@ -401,7 +390,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
                 rel="noreferrer"
                 className="px-4 py-2 border-2 border-black bg-[#1DA1F2] hover:bg-[#1a91da] font-pixel text-[10px] text-white shadow-pixel rounded-none transition-all flex items-center gap-2 active:translate-x-[1px] active:translate-y-[1px]"
               >
-                <span>TWEET YOUR BET TO X</span>
+                <span>{t.watch.tweetBet}</span>
                 <ExternalLink size={12} />
               </a>
             </div>

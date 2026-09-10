@@ -10,12 +10,14 @@ import {
   cn,
 } from "@/lib/utils";
 import { ExternalLink, ChevronDown, ChevronUp, ScrollText } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioLogProps {
   resets: ResetItem[];
 }
 
 export function MarioLog({ resets }: MarioLogProps) {
+  const { language, t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [filterType, setFilterType] = useState<"all" | "regular" | "banked">("all");
 
@@ -55,10 +57,10 @@ export function MarioLog({ resets }: MarioLogProps) {
         <div className="flex items-center gap-2">
           <span className="text-mario-coin text-base">📜</span>
           <h2 className="font-pixel text-xs sm:text-sm text-mario-coin tracking-wide">
-            CHRONICLES OF RESET QUESTS
+            {t.log.title}
           </h2>
           <span className="font-pixel text-[10px] bg-black text-gray-300 px-2 py-0.5 border border-black shadow-pixel-sm">
-            {resets.length} TOTAL
+            {t.log.total(resets.length)}
           </span>
         </div>
 
@@ -73,7 +75,7 @@ export function MarioLog({ resets }: MarioLogProps) {
                 : "bg-[#0F111A] text-gray-400 hover:text-white"
             )}
           >
-            ALL ({sortedResets.length})
+            {t.log.filterAll(sortedResets.length)}
           </button>
           <button
             onClick={() => handleFilterChange("regular")}
@@ -84,7 +86,7 @@ export function MarioLog({ resets }: MarioLogProps) {
                 : "bg-[#0F111A] text-gray-400 hover:text-white"
             )}
           >
-            ★ REGULAR
+            {t.log.filterRegular}
           </button>
           <button
             onClick={() => handleFilterChange("banked")}
@@ -95,7 +97,7 @@ export function MarioLog({ resets }: MarioLogProps) {
                 : "bg-[#0F111A] text-gray-400 hover:text-white"
             )}
           >
-            ? BANKED
+            {t.log.filterBanked}
           </button>
         </div>
       </div>
@@ -117,19 +119,19 @@ export function MarioLog({ resets }: MarioLogProps) {
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* Quest Index Badge */}
                   <span className="font-pixel text-[10px] bg-black text-gray-300 px-2 py-0.5 border border-gray-700 shadow-pixel-sm">
-                    QUEST #{questNumber.toString().padStart(2, "0")}
+                    {t.log.questNum(questNumber.toString().padStart(2, "0"))}
                   </span>
 
                   {/* Type Badge */}
                   {isBanked ? (
                     <span className="font-pixel text-[9px] sm:text-[10px] bg-mario-coin text-black px-2 py-0.5 border-2 border-black font-bold shadow-pixel-sm flex items-center gap-1">
                       <span>?</span>
-                      <span>BANKED RESET</span>
+                      <span>{t.log.bankedReset}</span>
                     </span>
                   ) : (
                     <span className="font-pixel text-[9px] sm:text-[10px] bg-mario-green text-black px-2 py-0.5 border-2 border-black font-bold shadow-pixel-sm flex items-center gap-1">
                       <span>★</span>
-                      <span>REGULAR RESET</span>
+                      <span>{t.log.regularReset}</span>
                     </span>
                   )}
 
@@ -143,7 +145,7 @@ export function MarioLog({ resets }: MarioLogProps) {
                 {/* Timestamps */}
                 <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
                   <span className="text-mario-coin font-pixel text-[9px]">
-                    {formatRelativeTime(reset.announced_at)}
+                    {formatRelativeTime(reset.announced_at, language)}
                   </span>
                   <span className="text-gray-600 hidden md:inline">|</span>
                   <span className="text-[11px] text-gray-400 hidden sm:inline">
@@ -179,7 +181,7 @@ export function MarioLog({ resets }: MarioLogProps) {
                     }}
                     className="inline-flex items-center gap-1.5 font-pixel text-[9px] text-mario-coin bg-[#0F111A] hover:bg-black px-2.5 py-1 border-2 border-black shadow-pixel-sm transition-all hover:text-white"
                   >
-                    <span>ORIGINAL DISPATCH</span>
+                    <span>{t.log.originalDispatch}</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
@@ -199,12 +201,12 @@ export function MarioLog({ resets }: MarioLogProps) {
             {isExpanded ? (
               <>
                 <ChevronUp className="w-4 h-4" />
-                <span>[ 🔼 COLLAPSE ]</span>
+                <span>{t.log.collapse}</span>
               </>
             ) : (
               <>
                 <ScrollText className="w-4 h-4" />
-                <span>[ 📜 EXPAND ALL QUESTS ({filteredResets.length}) ]</span>
+                <span>{t.log.expandAll(filteredResets.length)}</span>
               </>
             )}
           </button>

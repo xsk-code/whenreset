@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -95,7 +96,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-mario-dark text-white min-h-screen selection:bg-mario-coin selection:text-black">
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

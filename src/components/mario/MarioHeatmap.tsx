@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { ResetItem } from "@/lib/types";
 import { playMarioCoinSound, triggerHaptic, cn } from "@/lib/utils";
 import { Calendar, ExternalLink, Sparkles, HelpCircle } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioHeatmapProps {
   resets: ResetItem[];
@@ -27,12 +28,11 @@ const MONTH_NAMES = [
   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
 ];
 
-const DAY_LABELS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
 // Fixed end date anchor: Saturday 2026-09-12 (aligns with latest dataset reset)
 const ANCHOR_END_DATE_UTC = new Date(Date.UTC(2026, 8, 12));
 
 export function MarioHeatmap({ resets }: MarioHeatmapProps) {
+  const { t } = useLanguage();
   const [viewWeeks, setViewWeeks] = useState<26 | 52>(26);
   const [hoveredCell, setHoveredCell] = useState<DayCell | null>(null);
   const [selectedCell, setSelectedCell] = useState<DayCell | null>(null);
@@ -149,14 +149,14 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-pixel text-xs sm:text-sm md:text-base text-mario-coin">
-                  SUPER STAGE 26-WEEK PIXEL HEATMAP
+                  {t.heatmap.title}
                 </h2>
                 <span className="font-pixel text-[9px] sm:text-[10px] bg-mario-coin text-black px-2 py-0.5 border border-black shadow-pixel-sm rounded-none">
-                  STAGE 1-2
+                  {t.heatmap.stageTag}
                 </span>
               </div>
               <p className="font-mono text-[11px] text-gray-400 mt-1">
-                26-week calendar matrix tracking all Codex resets across Bowser&apos;s realm
+                {t.heatmap.subtitle}
               </p>
             </div>
           </div>
@@ -175,7 +175,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                   : "text-gray-400 hover:text-white"
               )}
             >
-              26 WEEKS (182D)
+              {t.heatmap.view26}
             </button>
             <button
               onClick={() => {
@@ -189,7 +189,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                   : "text-gray-400 hover:text-white"
               )}
             >
-              52 WEEKS (ALL 53)
+              {t.heatmap.view52}
             </button>
           </div>
         </div>
@@ -227,7 +227,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
             <div className="flex">
               {/* Day Labels on the Left */}
               <div className="flex flex-col justify-between pr-2 sm:pr-3 text-[9px] font-pixel text-gray-500 w-8 sm:w-10 text-right">
-                {DAY_LABELS.map((d, i) => (
+                {t.heatmap.dayLabels.map((d, i) => (
                   <span
                     key={d}
                     className={cn(
@@ -310,7 +310,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
           <div className="flex flex-wrap items-center gap-4 text-gray-300">
             <div className="flex items-center gap-1.5">
               <span className="w-3.5 h-3.5 bg-[#12141F] border border-[#333A4E] inline-block" />
-              <span className="text-gray-400 text-[11px]">No Reset</span>
+              <span className="text-gray-400 text-[11px]">{t.heatmap.noReset}</span>
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -318,7 +318,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                 ★
               </span>
               <span className="text-mario-green text-[11px] font-bold">
-                Regular Reset ({regularCount})
+                {t.heatmap.regularReset(regularCount)}
               </span>
             </div>
 
@@ -327,17 +327,17 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                 ?
               </span>
               <span className="text-mario-coin text-[11px] font-bold">
-                Banked Reset ({bankedCount})
+                {t.heatmap.bankedReset(bankedCount)}
               </span>
             </div>
           </div>
 
           {/* Indicator Count */}
           <div className="flex items-center gap-2 font-pixel text-[10px] text-gray-300 bg-[#0F111A] px-3 py-1.5 border border-black">
-            <span>WINDOW RESETS:</span>
+            <span>{t.heatmap.windowResets}</span>
             <span className="text-mario-coin font-bold">{totalResetsInView}</span>
             <span className="text-gray-500">|</span>
-            <span>ALL-TIME:</span>
+            <span>{t.heatmap.allTime}</span>
             <span className="text-mario-green font-bold">{resets.length}</span>
           </div>
         </div>
@@ -350,11 +350,11 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                 <Calendar size={14} className="text-mario-coin" />
                 <span>
                   {activeInspection.dateStr} (
-                  {DAY_LABELS[activeInspection.dayOfWeek]})
+                  {t.heatmap.dayLabels[activeInspection.dayOfWeek]})
                 </span>
                 {activeInspection.isToday && (
                   <span className="bg-blue-600 text-white font-pixel text-[9px] px-1.5 py-0.5 border border-black">
-                    TODAY
+                    {t.heatmap.today}
                   </span>
                 )}
               </div>
@@ -363,15 +363,15 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
               <div>
                 {activeInspection.hasBanked ? (
                   <span className="bg-mario-coin text-black font-pixel text-[10px] px-2 py-0.5 border border-black flex items-center gap-1">
-                    <HelpCircle size={11} /> BANKED RESET (Extra Quota)
+                    <HelpCircle size={11} /> {t.heatmap.bankedBadge}
                   </span>
                 ) : activeInspection.hasRegular ? (
                   <span className="bg-mario-green text-black font-pixel text-[10px] px-2 py-0.5 border border-black flex items-center gap-1">
-                    <Sparkles size={11} /> REGULAR SCHEDULED RESET
+                    <Sparkles size={11} /> {t.heatmap.regularBadge}
                   </span>
                 ) : (
                   <span className="bg-gray-800 text-gray-400 font-pixel text-[10px] px-2 py-0.5 border border-gray-700">
-                    QUIET DUNGEON (NO RESET)
+                    {t.heatmap.emptyBadge}
                   </span>
                 )}
               </div>
@@ -387,7 +387,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                   >
                     <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-gray-400 mb-1">
                       <span>
-                        Announced:{" "}
+                        {t.heatmap.announced}{" "}
                         <span className="text-white font-bold">
                           {new Date(r.announced_at).toUTCString()}
                         </span>
@@ -399,7 +399,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                           rel="noreferrer"
                           className="font-pixel text-[9px] text-blue-400 hover:text-blue-300 flex items-center gap-1 underline"
                         >
-                          <span>VIEW TWEET</span>
+                          <span>{t.heatmap.viewTweet}</span>
                           <ExternalLink size={11} />
                         </a>
                       )}
@@ -409,7 +409,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
                     </p>
                     {r.source?.author && (
                       <div className="text-[11px] font-mono text-gray-400 mt-1">
-                        Author: @{r.source.author}
+                        {t.heatmap.author} @{r.source.author}
                       </div>
                     )}
                   </div>
@@ -417,7 +417,7 @@ export function MarioHeatmap({ resets }: MarioHeatmapProps) {
               </div>
             ) : (
               <p className="font-mono text-xs text-gray-400 italic">
-                Castle tranquil. No quota refresh events recorded by scouts on this date.
+                {t.heatmap.quietDungeon}
               </p>
             )}
           </div>

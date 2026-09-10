@@ -8,6 +8,7 @@ import {
   cn,
 } from "@/lib/utils";
 import { Mail, Send, ExternalLink, CheckCircle2, AlertCircle, Bell } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioSubscribeProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface MarioSubscribeProps {
 const STORAGE_KEY = "whenreset_subscribed_email";
 
 export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [savedEmail, setSavedEmail] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -67,7 +69,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!trimmed || !emailRegex.test(trimmed)) {
       setStatus("error");
-      setErrorMessage("INVALID FREQUENCY! PLEASE ENTER A VALID EMAIL.");
+      setErrorMessage(t.subscribe.invalidEmail);
       triggerHaptic(30);
       return;
     }
@@ -107,10 +109,10 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
             <span className="text-mario-coin text-lg">📡</span>
             <div>
               <h3 className="font-pixel text-xs sm:text-sm text-mario-coin">
-                TOAD COMM STATION
+                {t.subscribe.title}
               </h3>
               <p className="font-mono text-[10px] text-gray-400">
-                8-BIT QUOTA DROP NOTIFICATION RADAR
+                {t.subscribe.subtitle}
               </p>
             </div>
           </div>
@@ -135,7 +137,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <div>
                 <span className="font-pixel text-[9px] block text-white">
-                  TUNED IN:
+                  {t.subscribe.tunedIn}
                 </span>
                 <span className="text-gray-300 break-all">{savedEmail}</span>
               </div>
@@ -145,7 +147,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
               onClick={handleUnsubscribe}
               className="font-pixel text-[8px] text-gray-400 hover:text-mario-red ml-2 shrink-0 underline"
             >
-              CHANGE
+              {t.subscribe.change}
             </button>
           </div>
         )}
@@ -153,7 +155,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
         {/* Success Alert */}
         {status === "success" && (
           <div className="mb-4 p-3 border-2 border-mario-coin bg-[#241F0A] text-mario-coin font-pixel text-[10px] shadow-pixel-sm leading-relaxed">
-            🍄 1-UP! RADAR FREQUENCY TUNED! YOU WILL RECEIVE INSTANT DISPATCHES WHEN CODEX QUOTAS RESET.
+            {t.subscribe.successMsg}
           </div>
         )}
 
@@ -168,7 +170,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
         {/* Form: Email Subscription */}
         <form onSubmit={handleSubmit} className="mb-6">
           <label className="block font-pixel text-[10px] text-gray-300 mb-2">
-            DISPATCH FREQUENCY (EMAIL):
+            {t.subscribe.inputLabel}
           </label>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
@@ -180,7 +182,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
                   setEmail(e.target.value);
                   if (status === "error") setStatus("idle");
                 }}
-                placeholder="mario@mushroom-kingdom.io"
+                placeholder={t.subscribe.placeholder}
                 className="w-full pl-9 pr-3 py-2.5 bg-[#0F111A] border-2 border-black text-white font-mono text-xs placeholder-gray-600 rounded-none focus:outline-none focus:border-mario-coin shadow-pixel-pressed"
               />
             </div>
@@ -189,11 +191,11 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
               className="pixel-btn px-4 py-2.5 bg-mario-coin text-black font-pixel text-[10px] border-2 border-black rounded-none hover:bg-[#FED626] flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>[ TUNE IN ]</span>
+              <span>{t.subscribe.button}</span>
             </button>
           </div>
           <p className="font-mono text-[10px] text-gray-500 mt-1.5">
-            Zero spam. Local memory verified. Triggered only upon confirmed OpenAI Codex quota drops.
+            {t.subscribe.note}
           </p>
         </form>
 
@@ -201,7 +203,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
         <div className="border-t-2 border-black pt-4">
           <div className="font-pixel text-[10px] text-mario-coin mb-2 flex items-center gap-1.5">
             <span>⚡</span>
-            <span>ALTERNATIVE BEACONS &amp; BROADCASTS</span>
+            <span>{t.subscribe.altChannels}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -220,7 +222,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
                 <span className="text-base">✈️</span>
                 <div>
                   <div className="font-pixel text-[9px] text-white group-hover:text-mario-coin">
-                    TELEGRAM BEACON
+                    {t.subscribe.telegramBeacon}
                   </div>
                   <div className="font-mono text-[10px] text-gray-400">
                     t.me/whenreset
@@ -245,7 +247,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
                 <span className="text-base">🐦</span>
                 <div>
                   <div className="font-pixel text-[9px] text-white group-hover:text-mario-coin">
-                    DISPATCH RADAR
+                    {t.subscribe.xRadar}
                   </div>
                   <div className="font-mono text-[10px] text-gray-400">
                     @thsottiaux on X
@@ -259,7 +261,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
 
         {/* NES Modal Footer Note */}
         <div className="mt-5 text-center font-pixel text-[9px] text-gray-500 border-t border-black/40 pt-3">
-          CLICK OUTSIDE OR PRESS [ESC] TO RETURN TO STAGE
+          {t.subscribe.footerTip}
         </div>
       </div>
     </div>
