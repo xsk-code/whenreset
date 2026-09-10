@@ -11,14 +11,14 @@ interface LanguageContextType {
   t: TranslationDictionary;
 }
 
-const STORAGE_KEY = "whenreset_language";
+const STORAGE_KEY = "whenreset_lang";
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("zh");
+  const [language, setLanguageState] = useState<Language>("en");
 
-  // Read saved preference or browser language on mount
+  // Read saved preference on mount; default to English
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
@@ -27,14 +27,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Detect browser language
-      if (typeof navigator !== "undefined" && navigator.language) {
-        if (navigator.language.toLowerCase().startsWith("zh")) {
-          setLanguageState("zh");
-        } else {
-          setLanguageState("en");
-        }
-      }
+      // Clean up legacy storage key if present
+      localStorage.removeItem("whenreset_language");
     } catch {
       // Ignore localStorage read errors
     }
