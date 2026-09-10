@@ -2,6 +2,7 @@
   "name": "whenreset",
   "version": "1.0.0",
   "private": true,
+  "author": "SanKan <2475986535@qq.com>",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

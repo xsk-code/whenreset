@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { playMarioCoinSound, triggerHaptic } from "@/lib/utils";
 import { Bell, ExternalLink, Zap } from "lucide-react";
 import { MarioMcpModal } from "./MarioMcpModal";
+import { MarioLogo } from "./MarioLogo";
 
 interface MarioHeaderProps {
   totalResets: number;
@@ -69,16 +70,19 @@ export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHe
 
         {/* Arcade Title Marquee & Navigation / Action Bar */}
         <div className="mt-3 pt-3 border-t-2 border-black flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h1 className="font-pixel text-lg sm:text-2xl md:text-3xl text-mario-coin tracking-tight flex items-center gap-2">
-              <span>WHENRESET</span>
-              <span className="text-xs bg-mario-red text-white px-2 py-0.5 border border-black shadow-pixel-sm">
-                8-BIT
-              </span>
-            </h1>
-            <p className="font-mono text-xs text-gray-400 mt-1">
-              Retro 8-bit OpenAI Codex quota reset tracking terminal
-            </p>
+          <div className="flex items-center gap-3">
+            <MarioLogo size="md" />
+            <div>
+              <h1 className="font-pixel text-lg sm:text-2xl md:text-3xl text-mario-coin tracking-tight flex items-center gap-2">
+                <span>WHENRESET</span>
+                <span className="text-xs bg-mario-red text-white px-2 py-0.5 border border-black shadow-pixel-sm">
+                  8-BIT
+                </span>
+              </h1>
+              <p className="font-mono text-xs text-gray-400 mt-1">
+                Retro 8-bit OpenAI Codex quota reset tracking terminal
+              </p>
+            </div>
           </div>
 
           {/* Action Controls & Endpoints */}
