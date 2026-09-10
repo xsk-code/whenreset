@@ -170,6 +170,8 @@ export interface TranslationDictionary {
     note: string;
     altChannels: string;
     telegramBeacon: string;
+    telegramComingSoon?: string;
+    telegramTooltip?: string;
     xRadar: string;
     footerTip: string;
   };
@@ -187,5 +189,11 @@ export interface TranslationDictionary {
   footer: {
     quote: string;
     disclaimer: string;
+    sponsorTitle?: string;
+    sponsorSubtitle?: string;
+    sponsorEmail?: string;
+    sponsorEmailCopied?: string;
+    contactCta?: string;
+    feedbackCta?: string;
   };
 }

@@ -1,0 +1,37 @@
+name: Sync Upstream Codex Resets
+
+on:
+  schedule:
+    # Run every 4 hours at minute 0
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run sync script
+        run: node scripts/sync-upstream.mjs
+
+      - name: Check for updates and commit
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain src/data/fallback-resets.json)" ]; then
+            git add src/data/fallback-resets.json
+            git commit -m "[Automated] Sync latest OpenAI Codex reset data"
+            git push
+          else
+            echo "✨ No data changes detected. Local dataset is up to date."
+          fi

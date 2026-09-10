@@ -7,8 +7,9 @@ import {
   triggerHaptic,
   cn,
 } from "@/lib/utils";
-import { Mail, Send, ExternalLink, CheckCircle2, AlertCircle, Bell } from "lucide-react";
+import { Mail, Send, ExternalLink, CheckCircle2, AlertCircle, Bell, Info } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { trackEvent } from "@/lib/analytics";
 
 interface MarioSubscribeProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
   const [savedEmail, setSavedEmail] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showTgNotice, setShowTgNotice] = useState(false);
 
   // Read saved email from localStorage on mount & open
   useEffect(() => {
@@ -83,6 +85,7 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
     setEmail("");
     playMarioPowerupSound();
     triggerHaptic(20);
+    trackEvent("subscribe_email_submitted");
   };
 
   const handleUnsubscribe = () => {
@@ -206,31 +209,49 @@ export function MarioSubscribe({ isOpen, onClose }: MarioSubscribeProps) {
             <span>{t.subscribe.altChannels}</span>
           </div>
 
+          {/* Telegram Notice Banner */}
+          {showTgNotice && (
+            <div className="mb-3 p-2.5 border-2 border-mario-coin bg-[#241F0A] text-mario-coin font-pixel text-[9px] shadow-pixel-sm flex items-start gap-2 animate-fadeIn">
+              <Info className="w-4 h-4 shrink-0 text-mario-coin mt-0.5" />
+              <div className="leading-relaxed">
+                {t.subscribe.telegramTooltip ||
+                  "Telegram beacon is currently under construction. Stay tuned via email or X!"}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {/* Telegram */}
-            <a
-              href="https://t.me/whenreset"
-              target="_blank"
-              rel="noopener noreferrer"
+            {/* Telegram Beacon (Under Construction) */}
+            <button
+              type="button"
               onClick={() => {
                 playMarioCoinSound();
                 triggerHaptic(8);
+                setShowTgNotice(true);
+                trackEvent("telegram_beacon_clicked", { status: "under_construction" });
               }}
-              className="p-2.5 border-2 border-black bg-[#0F111A] hover:bg-[#121622] flex items-center justify-between gap-2 shadow-pixel-sm transition-all group"
+              className="p-2.5 border-2 border-black bg-[#0F111A] hover:bg-[#151926] text-left flex items-center justify-between gap-2 shadow-pixel-sm transition-all group cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <span className="text-base">✈️</span>
                 <div>
-                  <div className="font-pixel text-[9px] text-white group-hover:text-mario-coin">
-                    {t.subscribe.telegramBeacon}
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-pixel text-[9px] text-white group-hover:text-mario-coin">
+                      {t.subscribe.telegramBeacon}
+                    </span>
+                    <span className="font-pixel text-[7px] px-1 py-0.2 bg-gray-800 text-yellow-400 border border-black">
+                      {t.subscribe.telegramComingSoon || "SOON"}
+                    </span>
                   </div>
-                  <div className="font-mono text-[10px] text-gray-400">
+                  <div className="font-mono text-[10px] text-gray-500">
                     t.me/whenreset
                   </div>
                 </div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-white shrink-0" />
-            </a>
+              <span className="font-pixel text-[8px] text-gray-400 group-hover:text-yellow-400">
+                [ ⏳ ]
+              </span>
+            </button>
 
             {/* Twitter / X */}
             <a

@@ -12,6 +12,7 @@ import {
 } from "@/lib/utils";
 import { Volume2, VolumeX, ExternalLink, Clock } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { trackEvent } from "@/lib/analytics";
 
 interface MarioHeroProps {
   latestReset: ResetItem;
@@ -167,6 +168,9 @@ export function MarioHero({ latestReset, onCoinChange }: MarioHeroProps) {
 
     // 2. Mobile haptic vibration
     triggerHaptic(18);
+
+    // Track custom event for engagement
+    trackEvent("mario_block_hit", { isBonus });
 
     // 3. Block bounce animation
     setIsHit(true);

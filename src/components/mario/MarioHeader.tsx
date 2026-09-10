@@ -5,6 +5,7 @@ import { playMarioCoinSound, triggerHaptic } from "@/lib/utils";
 import { Bell, Languages } from "lucide-react";
 import { MarioLogo } from "./MarioLogo";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { trackEvent } from "@/lib/analytics";
 
 interface MarioHeaderProps {
   totalResets: number;
@@ -18,12 +19,15 @@ export function MarioHeader({ totalResets, userCoins, onOpenSubscribe }: MarioHe
   const handleNotifyClick = () => {
     playMarioCoinSound();
     triggerHaptic(14);
+    trackEvent("subscribe_modal_opened", { source: "header_notify_btn" });
     onOpenSubscribe();
   };
 
   const handleLangToggle = () => {
     playMarioCoinSound();
     triggerHaptic(12);
+    const targetLang = language === "zh" ? "en" : "zh";
+    trackEvent("language_toggled", { target: targetLang });
     toggleLanguage();
   };
 

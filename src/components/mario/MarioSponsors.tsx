@@ -4,6 +4,7 @@ import React from "react";
 import { playMarioCoinSound, triggerHaptic } from "@/lib/utils";
 import { ExternalLink, Sparkles, Plus } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { trackEvent } from "@/lib/analytics";
 
 interface SponsorItem {
   id: string;
@@ -41,9 +42,13 @@ const SPONSOR_BASE_ITEMS: SponsorItem[] = [
 export function MarioSponsors() {
   const { t } = useLanguage();
 
-  const handleItemClick = () => {
+  const handleItemClick = (item: SponsorItem) => {
     playMarioCoinSound();
     triggerHaptic(12);
+    trackEvent("sponsor_clicked", {
+      itemId: item.id,
+      isClaim: Boolean(item.isClaimSlot),
+    });
   };
 
   return (
@@ -118,7 +123,7 @@ export function MarioSponsors() {
                     href={baseItem.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={handleItemClick}
+                    onClick={() => handleItemClick(baseItem)}
                     className="w-full py-2 px-3 font-pixel text-[9px] border-2 border-black flex items-center justify-center gap-1.5 shadow-pixel-sm transition-all rounded-none text-center bg-purple-600 hover:bg-purple-500 text-white font-bold cursor-pointer"
                   >
                     <Plus className="w-3 h-3 shrink-0" />

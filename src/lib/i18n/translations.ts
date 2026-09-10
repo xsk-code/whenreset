@@ -205,6 +205,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       note: "Zero spam. Local memory verified. Triggered only upon confirmed OpenAI Codex quota drops.",
       altChannels: "ALTERNATIVE BEACONS & BROADCASTS",
       telegramBeacon: "TELEGRAM BEACON",
+      telegramComingSoon: "COMING SOON",
+      telegramTooltip: "Telegram beacon frequency is under construction. Please use email or Twitter for live radar dispatches.",
       xRadar: "DISPATCH RADAR",
       footerTip: "CLICK OUTSIDE OR PRESS [ESC] TO RETURN TO STAGE",
     },
@@ -222,6 +224,12 @@ export const translations: Record<Language, TranslationDictionary> = {
     footer: {
       quote: "“THANK YOU TIBO! BUT OUR QUOTA IS IN ANOTHER CASTLE!”",
       disclaimer: "WHENRESET is an independent 8-bit retro tracker for OpenAI Codex quotas. All trademarks belong to their respective owners.",
+      sponsorTitle: "SPONSORSHIP & PARTNERSHIP",
+      sponsorSubtitle: "Reach thousands of quota-weary AI engineers & developers worldwide.",
+      sponsorEmail: "sponsor@whenreset.top",
+      sponsorEmailCopied: "COPIED TO CLIPBOARD!",
+      contactCta: "[ 👾 INQUIRE SPONSORSHIP ]",
+      feedbackCta: "[ 💬 FEEDBACK ]",
     },
   },
   zh: {
@@ -428,6 +436,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       note: "拒绝任何垃圾邮件。本地卡带存储认证。仅在确认 OpenAI Codex 释放额度时触发。",
       altChannels: "其他备用信标与广播频道",
       telegramBeacon: "TELEGRAM 特急信标",
+      telegramComingSoon: "信标建设中",
+      telegramTooltip: "Telegram 特急信标正在建设调试中，请先通过特急电报邮箱或推特雷达接收情报！",
       xRadar: "推特情报雷达",
       footerTip: "点击空白处或按 [ESC] 退出通信站",
     },
@@ -445,6 +455,12 @@ export const translations: Record<Language, TranslationDictionary> = {
     footer: {
       quote: "“谢谢你 Tibo！但是我们的额度在另一座城堡里！”",
       disclaimer: "WHENRESET 是一个追踪 OpenAI Codex 额度的独立 8-Bit 复古监控站。所有商标归其各自所有者所有。",
+      sponsorTitle: "广告赞助 & 商务合作通道",
+      sponsorSubtitle: "直达全球数万名重度依赖 AI 编程的开发者与极客工程师。",
+      sponsorEmail: "sponsor@whenreset.top",
+      sponsorEmailCopied: "商务邮箱已复制到剪贴板！",
+      contactCta: "[ 👾 洽谈展位赞助 ]",
+      feedbackCta: "[ 💬 意见反馈 ]",
     },
   },
 };
