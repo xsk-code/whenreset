@@ -137,7 +137,7 @@ function generateDrafts({ prob, days, avg, type }) {
     `🪙 Cadence: ~${avg}d average`,
     statusNote,
     "",
-    "🎮 8-Bit Live Radar: https://whenreset.com",
+    "🎮 8-Bit Live Radar: https://whenreset.top",
     "#OpenAI #Codex #WhenReset #ChatGPT",
   ].join("\n");
 
@@ -150,7 +150,7 @@ function generateDrafts({ prob, days, avg, type }) {
     "",
     isCastleAlert ? "🔥 Reset could drop any moment!" : "⚡ Keep building, tokens flowing!",
     "",
-    "Live tracker: https://whenreset.com",
+    "Live tracker: https://whenreset.top",
     "#OpenAI #Codex #WhenReset #AI",
   ].join("\n");
 
@@ -163,7 +163,7 @@ function generateDrafts({ prob, days, avg, type }) {
     `Last Mode: ${type.toUpperCase()}`,
     "",
     "Ready your prompt pipelines:",
-    "🍄 https://whenreset.com",
+    "🍄 https://whenreset.top",
     "",
     "#OpenAI #Codex #WhenReset #AI",
   ].join("\n");

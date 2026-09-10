@@ -28,7 +28,7 @@ type TabType = "cursor" | "claude" | "curl";
 const CURSOR_CONFIG = `{
   "mcpServers": {
     "whenreset": {
-      "url": "https://whenreset.com/api/mcp"
+      "url": "https://whenreset.top/api/mcp"
     }
   }
 }`;
@@ -40,20 +40,20 @@ const CLAUDE_CONFIG = `{
       "args": [
         "-y",
         "@modelcontextprotocol/server-fetch",
-        "https://whenreset.com/api/mcp"
+        "https://whenreset.top/api/mcp"
       ]
     }
   }
 }`;
 
 const CURL_EXAMPLE = `# 1. Query quota reset probability & threat status
-curl -s https://whenreset.com/api/mcp?tool=check_codex_reset_status
+curl -s https://whenreset.top/api/mcp?tool=check_codex_reset_status
 
 # 2. Get latest 5 reset announcements with Twitter links
-curl -s "https://whenreset.com/api/mcp?tool=get_recent_resets&limit=5"
+curl -s "https://whenreset.top/api/mcp?tool=get_recent_resets&limit=5"
 
 # 3. Standard MCP JSON-RPC 2.0 tool execution
-curl -s -X POST https://whenreset.com/api/mcp \\
+curl -s -X POST https://whenreset.top/api/mcp \\
   -H "Content-Type: application/json" \\
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_codex_reset_status","arguments":{}}}'`;
 

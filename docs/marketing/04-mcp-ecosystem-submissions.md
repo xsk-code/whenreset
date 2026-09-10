@@ -1,7 +1,7 @@
 # 🌐 WhenReset MCP 开源生态收录申报与发布模版
 
 > **目的**：将 WhenReset MCP 官方端点提交收录至全球主流 Model Context Protocol (MCP) 注册中心、Awesome 资源聚合库与开发者社区，打通 AI 智能体开箱即用生态。  
-> **官方端点**：`https://whenreset.com/api/mcp`  
+> **官方端点**：`https://whenreset.top/api/mcp`  
 > **协议版本**：`2024-11-05` (Anthropic MCP Standard)  
 > **鉴权需求**：公开免费 / 无需 API Key (Zero Authentication)
 
@@ -16,9 +16,9 @@
 | **Short Description** | Real-time OpenAI Codex quota reset forecast, cadence intelligence, and historical telemetry radar for AI coding agents. |
 | **Long Description** | WhenReset MCP equips AI coding agents (Cursor, Claude Desktop, Windsurf, Roo Code) with real-time rate limit intelligence. Agents can autonomously query quota reset probabilities, historical cadence cycles, and official announcements to optimize batch prompt scheduling and avoid mid-task rate limit starvation. |
 | **Transport** | Streamable HTTP (JSON-RPC 2.0) & REST (`GET`/`POST`) |
-| **Endpoint URL** | `https://whenreset.com/api/mcp` |
-| **Homepage** | `https://whenreset.com` |
-| **Repository** | `https://github.com/your-org/whenreset` |
+| **Endpoint URL** | `https://whenreset.top/api/mcp` |
+| **Homepage** | `https://whenreset.top` |
+| **Repository** | `https://github.com/xsk-code/whenreset` |
 | **License** | MIT |
 | **Author** | WhenReset Open Source Community |
 | **Categories** | `developer-tools`, `productivity`, `monitoring`, `ai-workflow` |
@@ -33,12 +33,12 @@
 name: whenreset-mcp
 title: WhenReset Codex Quota Radar
 description: Real-time OpenAI Codex quota reset forecast and cadence intelligence for AI agents.
-website: https://whenreset.com
-repository: https://github.com/your-org/whenreset
+website: https://whenreset.top
+repository: https://github.com/xsk-code/whenreset
 license: MIT
 transport:
   type: http
-  url: https://whenreset.com/api/mcp
+  url: https://whenreset.top/api/mcp
 authentication:
   type: none
 tools:
@@ -66,9 +66,9 @@ This PR adds **WhenReset MCP** to the Developer Tools / Monitoring section.
 
 ### Server Details
 - **Name**: WhenReset (`whenreset-mcp`)
-- **Homepage**: [https://whenreset.com](https://whenreset.com)
-- **Repo**: [https://github.com/your-org/whenreset](https://github.com/your-org/whenreset)
-- **Endpoint**: `https://whenreset.com/api/mcp`
+- **Homepage**: [https://whenreset.top](https://whenreset.top)
+- **Repo**: [https://github.com/xsk-code/whenreset](https://github.com/xsk-code/whenreset)
+- **Endpoint**: `https://whenreset.top/api/mcp`
 - **Transport**: Streamable HTTP / REST (Zero-install, no local daemon required)
 - **License**: MIT
 
@@ -87,7 +87,7 @@ Developers building heavy multi-agent pipelines with OpenAI Codex in Cursor or C
 
 ### README Markdown 增量条目 (Diff / Insert Block)
 ```markdown
-- [WhenReset](https://github.com/your-org/whenreset) - Real-time OpenAI Codex quota reset forecast probability, cadence intelligence, and telemetry radar for AI coding agents (`https://whenreset.com/api/mcp`).
+- [WhenReset](https://github.com/xsk-code/whenreset) - Real-time OpenAI Codex quota reset forecast probability, cadence intelligence, and telemetry radar for AI coding agents (`https://whenreset.top/api/mcp`).
 ```
 
 ---
@@ -117,7 +117,7 @@ Add this to your `~/.cursor/mcp.json`:
 {
   "mcpServers": {
     "whenreset": {
-      "url": "https://whenreset.com/api/mcp"
+      "url": "https://whenreset.top/api/mcp"
     }
   }
 }
@@ -130,8 +130,8 @@ Ask Composer:
 Composer will call the tool and reply:
 > *"Current threat level is CRITICAL (88% likelihood). It's been 7.2 days since the last reset against a 6.9-day cadence. A quota refresh is expected shortly."*
 
-Web UI (8-bit NES edition): https://whenreset.com  
-Direct endpoint: `https://whenreset.com/api/mcp`
+Web UI (8-bit NES edition): https://whenreset.top  
+Direct endpoint: `https://whenreset.top/api/mcp`
 
 Looking forward to your thoughts and suggestions!
 ```
@@ -147,8 +147,8 @@ version: 1.0.0
 description: Real-time OpenAI Codex quota reset forecast and cadence intelligence.
 author: WhenReset Community
 license: MIT
-repository: https://github.com/your-org/whenreset
-homepage: https://whenreset.com
+repository: https://github.com/xsk-code/whenreset
+homepage: https://whenreset.top
 tools:
   - name: check_codex_reset_status
     description: Query current Codex quota reset probability and cadence status.
@@ -156,10 +156,10 @@ tools:
     description: Retrieve recent quota reset logs with UTC timestamps.
 connections:
   http:
-    url: https://whenreset.com/api/mcp
+    url: https://whenreset.top/api/mcp
 ```
 
 ### Glama MCP Registry 标签配置
 - **Tags**: `OpenAI`, `Codex`, `Quota`, `RateLimit`, `Cursor`, `Developer-Tools`
-- **Icon**: `https://whenreset.com/opengraph-image` (1200x630 retro arcade HUD)
-- **Quick Test Command**: `curl -s https://whenreset.com/api/mcp?tool=check_codex_reset_status`
+- **Icon**: `https://whenreset.top/opengraph-image` (1200x630 retro arcade HUD)
+- **Quick Test Command**: `curl -s https://whenreset.top/api/mcp?tool=check_codex_reset_status`

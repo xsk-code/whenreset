@@ -25,7 +25,7 @@
 ```text
 🍄🚨 [WORLD 8-4 CASTLE ALERT] 🚨🍄
 
-Hey @thsottiaux, the Bowser lava is rising on https://whenreset.com!
+Hey @thsottiaux, the Bowser lava is rising on https://whenreset.top!
 
 Our 8-bit radar shows:
 ⏱️ 7.2 days since last quota refill
@@ -41,7 +41,7 @@ Are your fingers hovering over the coin block? 🕹️
 ```text
 🍄🚨【第 8-4 关城堡警报】🚨🍄
 
-致 @thsottiaux ：https://whenreset.com 的像素岩浆已经烧到嗓子眼了！
+致 @thsottiaux ：https://whenreset.top 的像素岩浆已经烧到嗓子眼了！
 
 8-bit 红白机雷达实时遥测：
 ⏱️ 距离上次额度重置已过去 7.2 天
@@ -68,7 +68,7 @@ So we turned your tweets into a full 8-bit Super Mario arcade radar! 🎮🍄
 ⭐ Millisecond countdown
 ⭐ 1-UP confetti & MCP agent API
 
-Track the magic: https://whenreset.com
+Track the magic: https://whenreset.top
 ```
 
 #### 中文版 (Chinese - 138 字)
@@ -81,7 +81,7 @@ Track the magic: https://whenreset.com
 ⭐ 毫秒级预估倒计时与问号顶砖
 ⭐ 纯 CSS 零版权风险，支持 IDE MCP 接入
 
-通关雷达传送门：https://whenreset.com
+通关雷达传送门：https://whenreset.top
 ```
 
 ---
@@ -93,7 +93,7 @@ Track the magic: https://whenreset.com
 ```text
 🪙 1-UP! @thsottiaux JUST PRESSED THE BUTTON! 🍄
 
-Instant telemetry from https://whenreset.com:
+Instant telemetry from https://whenreset.top:
 🎯 Cycle interval: 6.8 days (Radar predicted: 84% probability)
 📦 Reset Type: Banked Quota Refilled!
 
@@ -106,7 +106,7 @@ All devs: refill your coffee, fire up your prompts, let's build! 🚀
 ```text
 🪙 1-UP！@thsottiaux 刚刚按下了重置键！🍄
 
-https://whenreset.com 实时遥测捕获：
+https://whenreset.top 实时遥测捕获：
 🎯 本轮间隔：6.8 天（雷达预测准确率 84%）
 📦 额度类型：Banked Quota 满血复活！
 
@@ -140,7 +140,7 @@ https://whenreset.com 实时遥测捕获：
 
 ### 2. Tibo 主页神回复话术（发推 5 分钟内执行）
 - **如果重置为 Regular**：  
-  > *"Radar confirmed! The pipes are flowing again. Time to warp to World 8! 🍄 https://whenreset.com"*
+  > *"Radar confirmed! The pipes are flowing again. Time to warp to World 8! 🍄 https://whenreset.top"*
 - **如果重置为 Banked（大补包）**：  
   > *"MEGA MUSHROOM ACTIVATED! Thank you for supercharging our coding pipeline, captain @thsottiaux 🍄✨"*
 - **如果 Tibo 发了无关推文（如喝咖啡/休假）**：  

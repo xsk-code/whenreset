@@ -271,7 +271,7 @@ export async function GET(request: Request) {
           file: "~/.cursor/mcp.json",
           mcpServers: {
             whenreset: {
-              url: "https://whenreset.com/api/mcp",
+              url: "https://whenreset.top/api/mcp",
             },
           },
         },
@@ -283,7 +283,7 @@ export async function GET(request: Request) {
               args: [
                 "-y",
                 "@modelcontextprotocol/server-fetch",
-                "https://whenreset.com/api/mcp",
+                "https://whenreset.top/api/mcp",
               ],
             },
           },

@@ -8,7 +8,7 @@
 ## 一、 预测对赌与病毒传播机制 (Viral Mechanics)
 
 1. **痛点驱动的对赌心理**：当开发者用尽 Codex 额度时，情绪处于“焦躁 + 期待”的峰值。通过提供轻量化投票选项，引导用户将情绪转化为参与感。
-2. **三阶雷达挂钩（Telemetry-Driven）**：每一次投票与推文都与 https://whenreset.com 实时算法概率严格绑定（0~44% 平稳期、45~74% 升温期、75~99% 临界暴击期）。
+2. **三阶雷达挂钩（Telemetry-Driven）**：每一次投票与推文都与 https://whenreset.top 实时算法概率严格绑定（0~44% 平稳期、45~74% 升温期、75~99% 临界暴击期）。
 3. **社交货币转化**：猜对周期的开发者可获得「8-bit 预测大师」称号与虚荣心满足，形成自发截图转发。
 
 ---
@@ -21,7 +21,7 @@
 ```text
 🍄 FRIDAY NIGHT CODEX WATCH 🍄
 
-The weekend coding binge is here, but our quota meter is ticking on https://whenreset.com!
+The weekend coding binge is here, but our quota meter is ticking on https://whenreset.top!
 
 ⏱️ Days elapsed: 5.4d
 🪙 Avg cadence: 6.9d
@@ -46,7 +46,7 @@ Will @thsottiaux press the RESET button before midnight UTC? Cast your vote! �
 It has been 8.8 DAYS since the last quota refresh.
 Longest wait in 26 weeks: 9.4 days.
 
-Current probability on https://whenreset.com: 96% (CRITICAL)
+Current probability on https://whenreset.top: 96% (CRITICAL)
 
 Is Bowser holding the GPU keys hostage? When does the rain come? 🌧️
 ```
@@ -62,7 +62,7 @@ Is Bowser holding the GPU keys hostage? When does the rain come? 🌧️
 - **发帖时机**：雷达达到 80%+，重置几乎确定将在 24 小时内降临
 - **推文文案**：
 ```text
-The coin block is vibrating on https://whenreset.com (89% chance)! ⚡
+The coin block is vibrating on https://whenreset.top (89% chance)! ⚡
 
 When the notification drops, what will it be?
 Vote on the refill type! 🪙🍄
@@ -88,7 +88,7 @@ Codex Quota Radar Status: NORMAL
 ⏱️ Elapsed: 2.1 days | Avg: 6.9 days
 
 Green pastures across the kingdom. Keep building undisturbed!
-Live radar: https://whenreset.com
+Live radar: https://whenreset.top
 #OpenAI #Codex #WhenReset
 ```
 
@@ -101,7 +101,7 @@ Codex Quota Radar Status: ELEVATED RUMBLE
 ⏱️ Elapsed: 4.8 days | Avg: 6.9 days
 
 Token meters are heating up. Save your git branches and ready your prompts!
-Track live: https://whenreset.com
+Track live: https://whenreset.top
 #Codex #BuildInPublic
 ```
 
@@ -114,7 +114,7 @@ Codex Quota Radar Status: CRITICAL OVERLOAD
 ⏱️ Elapsed: 7.6 days | Avg: 6.9 days
 
 Bowser's castle is rumbling. Quota reset expected at any hour!
-Watch the meter live: https://whenreset.com
+Watch the meter live: https://whenreset.top
 #OpenAI #Codex
 ```
 
@@ -135,7 +135,7 @@ Watch the meter live: https://whenreset.com
 - Type: Regular Reset
 
 Hop back in your editor and smash those tokens! 🚀
-Full telemetry history: https://whenreset.com
+Full telemetry history: https://whenreset.top
 ```
 
 ### 2. 补发大额度（Banked Quota）播报
@@ -146,7 +146,7 @@ BANKED QUOTA DROP CONFIRMED!
 Tibo just announced banked limits for all Codex developers!
 
 Grab your coffee, fire up Cursor, and build the future:
-👉 https://whenreset.com
+👉 https://whenreset.top
 #OpenAI #Codex #AI
 ```
 
@@ -160,16 +160,16 @@ Grab your coffee, fire up Cursor, and build the future:
 ```json
 {
   "username": "WhenReset 8-Bit Radar",
-  "avatar_url": "https://whenreset.com/opengraph-image",
+  "avatar_url": "https://whenreset.top/opengraph-image",
   "embeds": [
     {
       "title": "🍄 [DAILY CODEX TELEMETRY] World 8-4 Castle Alert",
       "description": "**Current Reset Probability: 88% (CRITICAL)**\n\n- **Elapsed Since Last**: 7.2 Days\n- **Historical Cadence**: 6.9 Days\n- **Threat Level**: `CRITICAL SURGE`\n\n*Reset expected imminently. Ready your prompts!*",
       "color": 15017249,
-      "url": "https://whenreset.com",
+      "url": "https://whenreset.top",
       "fields": [
-        { "name": "Live Radar", "value": "[Open 8-Bit Arcade](https://whenreset.com)", "inline": true },
-        { "name": "Cursor MCP", "value": "`https://whenreset.com/api/mcp`", "inline": true }
+        { "name": "Live Radar", "value": "[Open 8-Bit Arcade](https://whenreset.top)", "inline": true },
+        { "name": "Cursor MCP", "value": "`https://whenreset.top/api/mcp`", "inline": true }
       ],
       "footer": { "text": "WhenReset.com • Independent Quota Radar" }
     }
@@ -187,5 +187,5 @@ Grab your coffee, fire up Cursor, and build the future:
 
 Bowser's castle is overheating! The next quota refresh could land any moment.
 
-🎮 [View Live Radar](https://whenreset.com) | 🛠️ [Copy MCP Server](https://whenreset.com/api/mcp)
+🎮 [View Live Radar](https://whenreset.top) | 🛠️ [Copy MCP Server](https://whenreset.top/api/mcp)
 ```

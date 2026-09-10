@@ -860,7 +860,7 @@ async function runAudit() {
         if (cursorTab) cursorTab.click();
         await new Promise(r => setTimeout(r, 100));
         const codeTextCursor = dialog.querySelector('pre code')?.innerText || '';
-        const hasCursorUrl = codeTextCursor.includes('https://whenreset.com/api/mcp');
+        const hasCursorUrl = codeTextCursor.includes('https://whenreset.top/api/mcp');
 
         // Test Copy Config feedback
         const copyBtn = Array.from(dialog.querySelectorAll('button')).find(b => b.innerText.includes('COPY CONFIG'));

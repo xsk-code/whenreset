@@ -65,7 +65,7 @@ const SPONSOR_ITEMS: SponsorItem[] = [
     badgeColor: "bg-purple-600 text-white animate-pixel-blink",
     description: "Promote your devtool, AI framework or cloud infrastructure directly on the #1 Codex quota tracker.",
     ctaText: "CLAIM THIS ITEM SLOT ($199/MO)",
-    href: "mailto:sponsor@whenreset.com?subject=Sponsorship%20Inquiry%20-%20WhenReset%20Item%20Shop",
+    href: "mailto:sponsor@whenreset.top?subject=Sponsorship%20Inquiry%20-%20WhenReset%20Item%20Shop",
     isClaimSlot: true,
   },
 ];

@@ -20,7 +20,7 @@ We built a public Model Context Protocol (MCP) server for @cursor_ai & Claude Co
 📊 "Show recent refill history"
 
 Zero API keys. 1-click config:
-👉 https://whenreset.com
+👉 https://whenreset.top
 ```
 
 #### Thread 展开第 2 推：痛点与实机演示 (Thread #2 - 275 chars)
@@ -43,13 +43,13 @@ Setup takes 15 seconds. Just paste this into `~/.cursor/mcp.json`:
 {
   "mcpServers": {
     "whenreset": {
-      "url": "https://whenreset.com/api/mcp"
+      "url": "https://whenreset.top/api/mcp"
     }
   }
 }
 
 Also works with Claude Desktop, Windsurf, and REST curl.
-Full documentation: https://whenreset.com
+Full documentation: https://whenreset.top
 #CursorAI #ClaudeCode #MCP
 ```
 
@@ -79,7 +79,7 @@ Add this to your `~/.cursor/mcp.json` (or Cursor Settings > MCP):
 {
   "mcpServers": {
     "whenreset": {
-      "url": "https://whenreset.com/api/mcp"
+      "url": "https://whenreset.top/api/mcp"
     }
   }
 }
@@ -89,8 +89,8 @@ Add this to your `~/.cursor/mcp.json` (or Cursor Settings > MCP):
 - *"Check the Codex quota reset status before running this test suite."*
 - *"When was the last banked quota reset announced, and how long was the interval?"*
 
-Web UI (8-bit Mario arcade edition): https://whenreset.com  
-Direct MCP Endpoint: `https://whenreset.com/api/mcp`  
+Web UI (8-bit Mario arcade edition): https://whenreset.top  
+Direct MCP Endpoint: `https://whenreset.top/api/mcp`  
 Feedback and feature requests welcome!
 ```
 
@@ -107,12 +107,12 @@ WhenReset MCP 服务器完全符合 Anthropic MCP 规范 (`2024-11-05`)，支持
 {
   "mcpServers": {
     "whenreset": {
-      "url": "https://whenreset.com/api/mcp"
+      "url": "https://whenreset.top/api/mcp"
     }
   }
 }
 ```
-*提示：亦可在 Cursor 界面中点击「Settings」->「Features」->「MCP」，点击「+ Add New MCP Server」，类型选择 `sse` / `http`，URL 填入 `https://whenreset.com/api/mcp` 即可。*
+*提示：亦可在 Cursor 界面中点击「Settings」->「Features」->「MCP」，点击「+ Add New MCP Server」，类型选择 `sse` / `http`，URL 填入 `https://whenreset.top/api/mcp` 即可。*
 
 ---
 
@@ -129,7 +129,7 @@ WhenReset MCP 服务器完全符合 Anthropic MCP 规范 (`2024-11-05`)，支持
       "args": [
         "-y",
         "@modelcontextprotocol/server-fetch",
-        "https://whenreset.com/api/mcp"
+        "https://whenreset.top/api/mcp"
       ]
     }
   }
@@ -144,7 +144,7 @@ WhenReset MCP 服务器完全符合 Anthropic MCP 规范 (`2024-11-05`)，支持
 {
   "mcpServers": {
     "whenreset": {
-      "url": "https://whenreset.com/api/mcp",
+      "url": "https://whenreset.top/api/mcp",
       "transport": "streamable-http"
     }
   }
@@ -157,13 +157,13 @@ WhenReset MCP 服务器完全符合 Anthropic MCP 规范 (`2024-11-05`)，支持
 
 ```bash
 # 1. 快速查询实时额度概率与威胁等级
-curl -s "https://whenreset.com/api/mcp?tool=check_codex_reset_status"
+curl -s "https://whenreset.top/api/mcp?tool=check_codex_reset_status"
 
 # 2. 检索最近 5 次官方重置记录与推文链接
-curl -s "https://whenreset.com/api/mcp?tool=get_recent_resets&limit=5"
+curl -s "https://whenreset.top/api/mcp?tool=get_recent_resets&limit=5"
 
 # 3. 标准 MCP JSON-RPC 2.0 握手与工具执行
-curl -s -X POST https://whenreset.com/api/mcp \
+curl -s -X POST https://whenreset.top/api/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",

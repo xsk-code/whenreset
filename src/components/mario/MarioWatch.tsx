@@ -91,7 +91,7 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
     (userBet
       ? `🎯 My Bet: ${userBet === "yes" ? "🍄 IMMINENT (<24h)" : "👾 LONGER WAIT"}\n\n`
       : "\n") +
-    `Track the 8-bit live radar:\nhttps://whenreset.com\n` +
+    `Track the 8-bit live radar:\nhttps://whenreset.top\n` +
     `#OpenAI #Codex #WhenReset #ChatGPT`;
 
   const twitterIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
