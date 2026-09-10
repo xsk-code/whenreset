@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ResetItem } from "@/lib/types";
 import {
   formatRelativeTime,
@@ -15,6 +15,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioHeroProps {
   latestReset: ResetItem;
+  onCoinChange?: (myCoins: number) => void;
 }
 
 interface ElapsedTime {
@@ -45,16 +46,71 @@ function calculateElapsed(announcedAt: string): ElapsedTime {
   return { days, hours, minutes, seconds, totalHours };
 }
 
-export function MarioHero({ latestReset }: MarioHeroProps) {
+export function MarioHero({ latestReset, onCoinChange }: MarioHeroProps) {
   const { language, t } = useLanguage();
   const [elapsed, setElapsed] = useState<ElapsedTime>(() =>
     calculateElapsed(latestReset.announced_at)
   );
   const [coinCount, setCoinCount] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
+  const [worldCoins, setWorldCoins] = useState<number>(142850);
+  const [isWorldPulsing, setIsWorldPulsing] = useState<boolean>(false);
   const [isHit, setIsHit] = useState<boolean>(false);
   const [floatingCoins, setFloatingCoins] = useState<FloatingCoin[]>([]);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+
+  const pendingDeltaRef = useRef<number>(0);
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 1. Initialize user's personal coins & score from localStorage
+  useEffect(() => {
+    try {
+      const savedCoins = localStorage.getItem("whenreset_my_coins");
+      const savedScore = localStorage.getItem("whenreset_my_score");
+      if (savedCoins !== null) {
+        const parsed = parseInt(savedCoins, 10);
+        if (!isNaN(parsed) && parsed >= 0) {
+          setCoinCount(parsed);
+          onCoinChange?.(parsed);
+        }
+      }
+      if (savedScore !== null) {
+        const parsed = parseInt(savedScore, 10);
+        if (!isNaN(parsed) && parsed >= 0) {
+          setScore(parsed);
+        }
+      }
+    } catch {
+      // Ignore storage access issues
+    }
+  }, [onCoinChange]);
+
+  // 2. Fetch and periodically sync real-time community coin pool
+  const fetchWorldCoins = useCallback(async () => {
+    try {
+      const res = await fetch("/api/coins");
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.global_coins === "number") {
+          setWorldCoins((prev) => {
+            if (data.global_coins !== prev) {
+              setIsWorldPulsing(true);
+              setTimeout(() => setIsWorldPulsing(false), 450);
+            }
+            return Math.max(prev, data.global_coins);
+          });
+        }
+      }
+    } catch {
+      // Fallback silently
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWorldCoins();
+    const interval = setInterval(fetchWorldCoins, 8000);
+    return () => clearInterval(interval);
+  }, [fetchWorldCoins]);
 
   // Live timer tick every second
   useEffect(() => {
@@ -67,6 +123,35 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
 
   // Check if reset was within the last 24 hours
   const isRecentReset = elapsed.totalHours < 24;
+
+  // Flush queued clicks to the /api/coins server endpoint
+  const flushCoinSync = useCallback(() => {
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+
+    syncTimeoutRef.current = setTimeout(async () => {
+      const delta = pendingDeltaRef.current;
+      if (delta <= 0) return;
+      pendingDeltaRef.current = 0;
+
+      try {
+        const res = await fetch("/api/coins", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ delta }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.global_coins === "number") {
+            setWorldCoins((prev) => Math.max(prev, data.global_coins));
+          }
+        }
+      } catch {
+        // Retry silently next time
+      }
+    }, 800);
+  }, []);
 
   // Handle Question Block Hit
   const handleHitBlock = useCallback(() => {
@@ -89,11 +174,34 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
       setIsHit(false);
     }, 220);
 
-    // 4. Counters
-    setCoinCount((prev) => prev + 1);
-    setScore((prev) => prev + (isBonus ? 1000 : 100));
+    // 4. Update personal persistent counters
+    setCoinCount((prev) => {
+      const next = prev + 1;
+      try {
+        localStorage.setItem("whenreset_my_coins", next.toString());
+      } catch {}
+      onCoinChange?.(next);
+      return next;
+    });
 
-    // 5. Spawn floating coin animation particle
+    setScore((prev) => {
+      const next = prev + (isBonus ? 1000 : 100);
+      try {
+        localStorage.setItem("whenreset_my_score", next.toString());
+      } catch {}
+      return next;
+    });
+
+    // 5. Update community total optimistically
+    setWorldCoins((prev) => prev + 1);
+    setIsWorldPulsing(true);
+    setTimeout(() => setIsWorldPulsing(false), 300);
+
+    // 6. Queue click for backend sync
+    pendingDeltaRef.current += 1;
+    flushCoinSync();
+
+    // 7. Spawn floating coin animation particle
     const coinId = Date.now() + Math.random();
     const randomOffset = (Math.random() - 0.5) * 44;
     setFloatingCoins((prev) => [
@@ -104,7 +212,7 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
     setTimeout(() => {
       setFloatingCoins((prev) => prev.filter((c) => c.id !== coinId));
     }, 700);
-  }, [coinCount, soundEnabled]);
+  }, [coinCount, soundEnabled, onCoinChange, flushCoinSync]);
 
   return (
     <section className="w-full max-w-5xl border-[3px] border-black bg-mario-darkCard p-4 sm:p-6 md:p-8 shadow-pixel rounded-none my-6">
@@ -221,13 +329,36 @@ export function MarioHero({ latestReset }: MarioHeroProps) {
             </button>
 
             {/* Score & Coin HUD Under Block */}
-            <div className="mt-3 flex items-center gap-4 font-pixel text-[10px] sm:text-xs text-gray-300">
-              <span className="flex items-center gap-1 text-mario-coin font-bold">
-                <span>🪙</span> x{coinCount.toString().padStart(2, "0")}
-              </span>
-              <span className="text-gray-400">
-                {t.hero.score} {score.toString().padStart(6, "0")}
-              </span>
+            <div className="mt-3 flex flex-col items-center gap-2 font-pixel text-[10px] sm:text-xs text-gray-300 w-full">
+              <div className="flex items-center justify-center gap-3">
+                <span className="flex items-center gap-1 text-mario-coin font-bold" title={t.hero.myCoins}>
+                  <span>🪙</span> x{coinCount.toString().padStart(2, "0")}
+                </span>
+                <span className="text-gray-400">
+                  {t.hero.score} {score.toString().padStart(6, "0")}
+                </span>
+              </div>
+
+              {/* Real-time World Coin Community Counter */}
+              <div
+                className={cn(
+                  "flex items-center justify-between gap-2 px-2.5 py-1.5 bg-black/80 border shadow-pixel-sm text-[9px] w-full transition-all rounded-none",
+                  isWorldPulsing ? "border-mario-coin scale-[1.02] bg-yellow-950/40 text-mario-coin" : "border-gray-800 text-gray-300"
+                )}
+                title="Real-time global community clicks"
+              >
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <span className="inline-block w-1.5 h-1.5 rounded-none bg-mario-green animate-pixel-blink" />
+                  <span className="text-[8px] sm:text-[9px] tracking-tight">{t.hero.worldCoins}:</span>
+                </div>
+                <div className="flex items-center gap-1 font-bold text-mario-coin">
+                  <span>🪙</span>
+                  <span>{worldCoins.toLocaleString()}</span>
+                  <span className="text-[8px] text-mario-green bg-black px-1 border border-mario-green/60 ml-0.5">
+                    {t.hero.worldCoinsLive}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

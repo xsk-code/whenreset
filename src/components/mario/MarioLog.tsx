@@ -9,14 +9,16 @@ import {
   triggerHaptic,
   cn,
 } from "@/lib/utils";
-import { ExternalLink, ChevronDown, ChevronUp, ScrollText } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, ScrollText, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioLogProps {
   resets: ResetItem[];
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export function MarioLog({ resets }: MarioLogProps) {
+export function MarioLog({ resets, onRefresh, isRefreshing }: MarioLogProps) {
   const { language, t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [filterType, setFilterType] = useState<"all" | "regular" | "banked">("all");
@@ -62,6 +64,26 @@ export function MarioLog({ resets }: MarioLogProps) {
           <span className="font-pixel text-[10px] bg-black text-gray-300 px-2 py-0.5 border border-black shadow-pixel-sm">
             {t.log.total(resets.length)}
           </span>
+          {onRefresh && (
+            <button
+              onClick={() => {
+                playMarioCoinSound();
+                triggerHaptic(12);
+                onRefresh();
+              }}
+              disabled={isRefreshing}
+              className={cn(
+                "pixel-btn font-pixel text-[9px] px-2 py-1 border-2 border-black shadow-pixel-sm transition-all flex items-center gap-1.5 cursor-pointer rounded-none active:translate-x-[1px] active:translate-y-[1px]",
+                isRefreshing
+                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  : "bg-mario-coin text-black hover:bg-[#FED626] font-bold"
+              )}
+              title="Fetch latest Codex quota announcements"
+            >
+              <RefreshCw className={cn("w-2.5 h-2.5 shrink-0", isRefreshing && "animate-spin")} />
+              <span>{isRefreshing ? t.log.refreshing : t.log.refreshIntel}</span>
+            </button>
+          )}
         </div>
 
         {/* Filter Pills */}

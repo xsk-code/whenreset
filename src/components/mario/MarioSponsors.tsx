@@ -9,7 +9,7 @@ interface SponsorItem {
   id: string;
   icon: string;
   badgeColor: string;
-  href: string;
+  href?: string;
   isClaimSlot?: boolean;
 }
 
@@ -17,25 +17,22 @@ const SPONSOR_BASE_ITEMS: SponsorItem[] = [
   {
     id: "mushroom",
     icon: "🍄",
-    badgeColor: "bg-mario-red text-white",
-    href: "https://cursor.com",
+    badgeColor: "bg-[#2A2E3D] text-gray-300 border-gray-600",
   },
   {
     id: "star",
     icon: "⭐",
-    badgeColor: "bg-mario-coin text-black",
-    href: "https://lambda.com",
+    badgeColor: "bg-[#2A2E3D] text-gray-300 border-gray-600",
   },
   {
     id: "coinbox",
     icon: "🪙",
-    badgeColor: "bg-mario-green text-black",
-    href: "https://openrouter.ai",
+    badgeColor: "bg-[#2A2E3D] text-gray-300 border-gray-600",
   },
   {
     id: "claim",
     icon: "👾",
-    badgeColor: "bg-purple-600 text-white animate-pixel-blink",
+    badgeColor: "bg-purple-600 text-white animate-pixel-blink border-purple-400",
     href: "mailto:sponsor@whenreset.top?subject=Sponsorship%20Inquiry%20-%20WhenReset%20Item%20Shop",
     isClaimSlot: true,
   },
@@ -116,30 +113,25 @@ export function MarioSponsors() {
 
               {/* Action Button */}
               <div className="pt-2 border-t border-black/50">
-                <a
-                  href={baseItem.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={handleItemClick}
-                  className={`w-full py-2 px-3 font-pixel text-[9px] border-2 border-black flex items-center justify-center gap-1.5 shadow-pixel-sm transition-all rounded-none text-center ${
-                    baseItem.isClaimSlot
-                      ? "bg-purple-600 hover:bg-purple-500 text-white font-bold"
-                      : "bg-[#0F111A] hover:bg-mario-coin text-gray-300 hover:text-black font-bold"
-                  }`}
-                >
-                  {baseItem.isClaimSlot ? (
-                    <>
-                      <Plus className="w-3 h-3 shrink-0" />
-                      <span>{item.ctaText}</span>
-                      <ExternalLink className="w-3 h-3 shrink-0" />
-                    </>
-                  ) : (
-                    <>
-                      <span>[ {item.ctaText} ]</span>
-                      <ExternalLink className="w-3 h-3 shrink-0" />
-                    </>
-                  )}
-                </a>
+                {baseItem.href ? (
+                  <a
+                    href={baseItem.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleItemClick}
+                    className="w-full py-2 px-3 font-pixel text-[9px] border-2 border-black flex items-center justify-center gap-1.5 shadow-pixel-sm transition-all rounded-none text-center bg-purple-600 hover:bg-purple-500 text-white font-bold cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3 shrink-0" />
+                    <span>{item.ctaText}</span>
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                  </a>
+                ) : (
+                  <div
+                    className="w-full py-2 px-3 font-pixel text-[9px] border-2 border-dashed border-gray-600/70 flex items-center justify-center gap-1.5 rounded-none text-center bg-[#0F111A]/60 text-gray-500 select-none"
+                  >
+                    <span>[ {item.ctaText} ]</span>
+                  </div>
+                )}
               </div>
             </div>
           );

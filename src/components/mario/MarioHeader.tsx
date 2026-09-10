@@ -1,20 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { playMarioCoinSound, triggerHaptic } from "@/lib/utils";
-import { Bell, ExternalLink, Zap, Languages } from "lucide-react";
-import { MarioMcpModal } from "./MarioMcpModal";
+import { Bell, Languages } from "lucide-react";
 import { MarioLogo } from "./MarioLogo";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MarioHeaderProps {
   totalResets: number;
+  userCoins?: number;
   onOpenSubscribe: () => void;
-  onOpenMcp?: () => void;
 }
 
-export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHeaderProps) {
-  const [isMcpOpen, setIsMcpOpen] = useState(false);
+export function MarioHeader({ totalResets, userCoins, onOpenSubscribe }: MarioHeaderProps) {
   const { language, toggleLanguage, t } = useLanguage();
 
   const handleNotifyClick = () => {
@@ -23,25 +21,10 @@ export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHe
     onOpenSubscribe();
   };
 
-  const handleMcpClick = () => {
-    playMarioCoinSound();
-    triggerHaptic(14);
-    if (onOpenMcp) {
-      onOpenMcp();
-    } else {
-      setIsMcpOpen(true);
-    }
-  };
-
   const handleLangToggle = () => {
     playMarioCoinSound();
     triggerHaptic(12);
     toggleLanguage();
-  };
-
-  const handleLinkClick = () => {
-    playMarioCoinSound();
-    triggerHaptic(8);
   };
 
   return (
@@ -59,7 +42,7 @@ export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHe
             {/* Coins counter */}
             <div className="flex items-center gap-1.5 text-mario-coin">
               <span>🪙</span>
-              <span>x{totalResets.toString().padStart(2, "0")}</span>
+              <span>x{(userCoins !== undefined ? userCoins : totalResets).toString().padStart(2, "0")}</span>
             </div>
 
             {/* World indicator */}
@@ -113,62 +96,9 @@ export function MarioHeader({ totalResets, onOpenSubscribe, onOpenMcp }: MarioHe
               <Bell className="w-3 h-3" />
               <span>{t.header.notifyMe}</span>
             </button>
-
-            {/* MCP for Cursor Button */}
-            <button
-              onClick={handleMcpClick}
-              className="pixel-btn px-3 py-1.5 bg-mario-green text-black border-2 border-black shadow-pixel-sm hover:bg-[#00D000] flex items-center gap-1.5 font-bold cursor-pointer rounded-none"
-            >
-              <Zap className="w-3 h-3 text-black fill-black" />
-              <span>{t.header.mcpBtn}</span>
-            </button>
-
-            {/* API Endpoints */}
-            <a
-              href="/api/status"
-              target="_blank"
-              onClick={handleLinkClick}
-              className="px-2 py-1.5 border-2 border-black bg-[#0F111A] text-gray-300 hover:text-mario-coin shadow-pixel-sm transition-all rounded-none"
-            >
-              /api/status
-            </a>
-            <a
-              href="/api/resets"
-              target="_blank"
-              onClick={handleLinkClick}
-              className="px-2 py-1.5 border-2 border-black bg-[#0F111A] text-gray-300 hover:text-mario-coin shadow-pixel-sm transition-all rounded-none"
-            >
-              /api/resets
-            </a>
-            <a
-              href="/api/mcp"
-              target="_blank"
-              onClick={handleLinkClick}
-              className="px-2 py-1.5 border-2 border-black bg-[#0F111A] text-mario-coin hover:text-white shadow-pixel-sm transition-all rounded-none"
-            >
-              /api/mcp
-            </a>
-
-            {/* Official X link */}
-            <a
-              href="https://x.com/thsottiaux"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleLinkClick}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 border-2 border-black bg-[#0F111A] text-gray-400 hover:text-white shadow-pixel-sm transition-all rounded-none"
-            >
-              <span>@thsottiaux</span>
-              <ExternalLink className="w-2.5 h-2.5" />
-            </a>
           </div>
         </div>
       </header>
-
-      {/* MCP Modal */}
-      <MarioMcpModal
-        isOpen={isMcpOpen}
-        onClose={() => setIsMcpOpen(false)}
-      />
     </>
   );
 }

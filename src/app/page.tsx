@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import fallbackResets from "@/data/fallback-resets.json";
 import { calculateStats } from "@/lib/utils";
-import { ResetItem } from "@/lib/types";
+import { ResetItem, ResetsResponse } from "@/lib/types";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { MarioHeader } from "@/components/mario/MarioHeader";
 import { MarioLogo } from "@/components/mario/MarioLogo";
@@ -17,9 +17,52 @@ import { MarioSubscribe } from "@/components/mario/MarioSubscribe";
 
 export default function Home() {
   const [isSubscribeOpen, setIsSubscribeOpen] = useState<boolean>(false);
+  const [resets, setResets] = useState<ResetItem[]>(() => fallbackResets as ResetItem[]);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [userCoins, setUserCoins] = useState<number>(0);
   const { t } = useLanguage();
 
-  const resets = fallbackResets as ResetItem[];
+  // Load initial saved coins for header HUD sync
+  useEffect(() => {
+    try {
+      const savedCoins = localStorage.getItem("whenreset_my_coins");
+      if (savedCoins !== null) {
+        const parsed = parseInt(savedCoins, 10);
+        if (!isNaN(parsed)) setUserCoins(parsed);
+      }
+    } catch {}
+  }, []);
+
+  // Fetch latest resets from the API endpoint
+  const fetchResets = useCallback(async (isManual = false) => {
+    if (isManual) setIsRefreshing(true);
+    try {
+      const res = await fetch(`/api/resets?_t=${Date.now()}`);
+      if (res.ok) {
+        const data: ResetsResponse = await res.json();
+        if (Array.isArray(data?.data) && data.data.length > 0) {
+          setResets(data.data);
+        }
+      }
+    } catch (err) {
+      console.warn("[WhenReset] Failed to refresh resets, keeping current data", err);
+    } finally {
+      if (isManual) {
+        setTimeout(() => setIsRefreshing(false), 500);
+      }
+    }
+  }, []);
+
+  // Initial client fetch and 60-second polling
+  useEffect(() => {
+    fetchResets();
+    const interval = setInterval(() => {
+      fetchResets();
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [fetchResets]);
+
   const stats = calculateStats(resets);
   const latest = resets[0];
 
@@ -28,57 +71,36 @@ export default function Home() {
       {/* Decoupled Retro Top Arcade HUD */}
       <MarioHeader
         totalResets={stats.total}
+        userCoins={userCoins}
         onOpenSubscribe={() => setIsSubscribeOpen(true)}
       />
 
       {/* Main Hero: Question Block & Giant Countdown Clock */}
-      {latest && <MarioHero latestReset={latest} />}
+      {latest && (
+        <MarioHero
+          latestReset={latest}
+          onCoinChange={(coins) => setUserCoins(coins)}
+        />
+      )}
 
       {/* Statistics Section: 3 Classic NES Metric Blocks */}
       <MarioStats stats={stats} />
 
-      {/* Stage 1-2: Bowser Castle Radar Watch & Community Bet */}
+      {/* Stage 1-2: Castle Radar Watch & Community Bet */}
       <MarioWatch stats={stats} latestReset={latest} />
 
       {/* Stage 1-2: 26-Week Super Stage Pixel Heatmap */}
       <MarioHeatmap resets={resets} />
 
-      {/* Stage 1-3: Full Quests Stream Timeline */}
-      <MarioLog resets={resets} />
+      {/* Stage 1-3: Full Quests Stream Timeline with Live Refresh */}
+      <MarioLog
+        resets={resets}
+        onRefresh={() => fetchResets(true)}
+        isRefreshing={isRefreshing}
+      />
 
-      {/* Stage 1-3: 8-Bit Item Shop & Power-Up Rail */}
+      {/* Stage 1-3: 8-Bit Item Shop & Power-Up Stand (Blanked / Ad Space Available) */}
       <MarioSponsors />
-
-      {/* Level Map / Stage Progression Road */}
-      <section className="w-full max-w-5xl my-4 border-2 border-black bg-[#181B26] p-4 shadow-pixel rounded-none">
-        <div className="flex items-center justify-between mb-3 border-b border-gray-800 pb-2">
-          <div className="font-pixel text-xs text-mario-coin flex items-center gap-2">
-            <span>🗺️</span>
-            <span>{t.progression.title}</span>
-          </div>
-          <span className="font-pixel text-[10px] text-mario-green bg-black px-2 py-0.5 border border-mario-green">
-            {t.progression.statusCleared}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-pixel text-[10px]">
-          <div className="border-2 border-mario-green bg-[#0F111A] p-3 text-mario-green shadow-pixel-sm">
-            <div className="font-bold text-xs mb-1">{t.progression.stage1Title}</div>
-            <div className="text-white font-mono text-xs">{t.progression.stage1Desc}</div>
-            <div className="mt-2 text-[10px] text-mario-green">{t.progression.complete}</div>
-          </div>
-          <div className="border-2 border-mario-green bg-[#0F111A] p-3 text-mario-green shadow-pixel-sm">
-            <div className="font-bold text-xs mb-1 text-mario-red">{t.progression.stage2Title}</div>
-            <div className="text-white font-mono text-xs">{t.progression.stage2Desc}</div>
-            <div className="mt-2 text-[10px] text-mario-green">{t.progression.complete}</div>
-          </div>
-          <div className="border-2 border-mario-green bg-[#0F111A] p-3 text-mario-green shadow-pixel-sm">
-            <div className="font-bold text-xs mb-1 text-mario-coin">{t.progression.stage3Title}</div>
-            <div className="text-white font-mono text-xs">{t.progression.stage3Desc}</div>
-            <div className="mt-2 text-[10px] text-mario-green">{t.progression.complete}</div>
-          </div>
-        </div>
-      </section>
 
       {/* NES Retro Footer */}
       <footer className="w-full max-w-5xl mt-6 mb-8 flex flex-col items-center text-center text-xs font-mono text-gray-400 border-t-2 border-black pt-6">

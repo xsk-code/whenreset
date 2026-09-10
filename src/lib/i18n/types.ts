@@ -15,7 +15,6 @@ export interface TranslationDictionary {
     liveRadar: string;
     subtitle: string;
     notifyMe: string;
-    mcpBtn: string;
   };
   hero: {
     title: string;
@@ -40,6 +39,9 @@ export interface TranslationDictionary {
     author: string;
     refId: string;
     bonusCoin: string;
+    myCoins: string;
+    worldCoins: string;
+    worldCoinsLive: string;
   };
   stats: {
     title: string;
@@ -137,6 +139,8 @@ export interface TranslationDictionary {
     originalDispatch: string;
     expandAll: (count: number) => string;
     collapse: string;
+    refreshIntel: string;
+    refreshing: string;
   };
   sponsors: {
     title: string;
@@ -168,25 +172,6 @@ export interface TranslationDictionary {
     telegramBeacon: string;
     xRadar: string;
     footerTip: string;
-  };
-  mcp: {
-    title: string;
-    tag: string;
-    subtitle: string;
-    intro: string;
-    tabCursorHint: string;
-    tabClaudeHint: string;
-    tabCurlHint: string;
-    publicEndpointHint: string;
-    copyBtn: string;
-    copiedBtn: string;
-    toolsDefined: string;
-    tool1Title: string;
-    tool1Desc: string;
-    tool2Title: string;
-    tool2Desc: string;
-    footerReturn: string;
-    rawMcp: string;
   };
   progression: {
     title: string;
