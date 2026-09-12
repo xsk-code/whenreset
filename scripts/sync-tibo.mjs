@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE_PATH = path.resolve(__dirname, "../src/data/fallback-resets.json");
+const SCHEDULED_FILE_PATH = path.resolve(__dirname, "../src/data/fallback-scheduled.json");
 
 const UPSTREAM_RESETS_URL = process.env.UPSTREAM_RESETS_URL || "https://codex-resets.com/api/v1/resets";
 const UPSTREAM_STATUS_URL = process.env.UPSTREAM_STATUS_URL || "https://codex-resets.com/api/v1/status";
@@ -163,11 +164,13 @@ Options:
 
   // Also check if status has an active scheduled_reset announced by Tibo
   const scheduledReset = statusData?.data?.scheduled_reset;
-  if (scheduledReset && scheduledReset.id && !localIds.has(String(scheduledReset.id))) {
+  if (scheduledReset && scheduledReset.id) {
     const scheduledItem = {
       id: String(scheduledReset.id),
+      status: "scheduled",
       reset_type: scheduledReset.reset_type || "regular",
       announced_at: scheduledReset.announced_at || new Date().toISOString(),
+      scheduled_for: scheduledReset.scheduled_for || "2026-09-12T07:00:00.000Z",
       text: scheduledReset.text || "And of course, a reset is also landing by midnight today.",
       source: scheduledReset.source || {
         type: "x_post",
@@ -175,10 +178,14 @@ Options:
         url: `https://x.com/thsottiaux/status/${scheduledReset.id}`,
       },
     };
-    localResets.unshift(scheduledItem);
-    localIds.add(String(scheduledReset.id));
-    newUpstreamCount++;
-    console.log(`🚀 [BREAKING] Detected newly scheduled reset announced by Tibo: id=${scheduledReset.id}!`);
+    if (!options.dryRun) {
+      await fs.writeFile(
+        SCHEDULED_FILE_PATH,
+        JSON.stringify(scheduledItem, null, 2) + "\n",
+        "utf-8"
+      );
+    }
+    console.log(`🚀 [UPCOMING RESET] Official reset scheduled by Tibo: id=${scheduledReset.id} (landing today)!`);
   }
 
   if (newUpstreamCount > 0) {
@@ -226,8 +233,11 @@ Options:
   const latest = localResets[0];
   if (latest) {
     const diffDays = ((Date.now() - new Date(latest.announced_at).getTime()) / (1000 * 60 * 60 * 24)).toFixed(1);
-    console.log(`\n⭐ Current Latest Reset: [${latest.announced_at}] (~${diffDays} days ago)`);
-    console.log(`⭐ Reset Type: ${latest.reset_type.toUpperCase()} | ID: ${latest.id}`);
+    console.log(`\n⭐ Latest Completed Reset: [${latest.announced_at}] (~${diffDays} days elapsed)`);
+    console.log(`⭐ Completed Reset Type  : ${latest.reset_type.toUpperCase()} | ID: ${latest.id}`);
+  }
+  if (scheduledReset) {
+    console.log(`⭐ Upcoming Scheduled    : Announced today at ${scheduledReset.announced_at} (Landing by midnight)`);
   }
 }
 

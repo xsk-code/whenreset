@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { ResetItem } from "@/lib/types";
+import { ResetItem, ScheduledReset } from "@/lib/types";
 import {
   formatRelativeTime,
   formatUtcTime,
@@ -16,6 +16,7 @@ import { trackEvent } from "@/lib/analytics";
 
 interface MarioHeroProps {
   latestReset: ResetItem;
+  scheduledReset?: ScheduledReset | null;
   onCoinChange?: (myCoins: number) => void;
   onOpenSubscribe?: () => void;
   avgIntervalDays?: number;
@@ -51,6 +52,7 @@ function calculateElapsed(announcedAt: string): ElapsedTime {
 
 export function MarioHero({
   latestReset,
+  scheduledReset,
   onCoinChange,
   onOpenSubscribe,
   avgIntervalDays = 7.0,
@@ -262,6 +264,41 @@ export function MarioHero({
 
   return (
     <section className="w-full max-w-5xl border-2 border-black bg-mario-darkCard p-4 sm:p-6 md:p-8 shadow-pixel rounded-none my-6">
+      {/* Official Scheduled Reset Announcement Banner */}
+      {scheduledReset && (
+        <div className="mb-5 border-2 border-dashed border-mario-green bg-[#102418] p-3 sm:p-4 rounded-none shadow-pixel flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-castle-pulse">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <span className="text-xl sm:text-2xl animate-pixel-blink select-none">🚨</span>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-pixel text-[10px] sm:text-xs text-mario-green font-bold">
+                  [ OFFICIAL RESET SCHEDULED FOR TODAY! ]
+                </span>
+                {scheduledReset.announced_at && (
+                  <span className="font-mono text-[10px] text-zinc-400 bg-black/60 px-1.5 py-0.5 border border-black">
+                    {new Date(scheduledReset.announced_at).toISOString().replace("T", " ").slice(0, 16)} UTC
+                  </span>
+                )}
+              </div>
+              <p className="font-mono text-xs text-zinc-200 mt-1">
+                Tibo announced: “And of course, a reset is also landing by midnight today.”
+              </p>
+            </div>
+          </div>
+          {scheduledReset.source?.url && (
+            <a
+              href={scheduledReset.source.url}
+              target="_blank"
+              rel="noreferrer"
+              className="font-pixel text-[9px] px-3 py-1.5 border-2 border-black bg-mario-green text-black hover:bg-emerald-400 shadow-pixel-sm rounded-none flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+            >
+              <span>[ VIEW TWEET ↗ ]</span>
+              <ExternalLink size={10} />
+            </a>
+          )}
+        </div>
+      )}
+
       {/* Top Banner Row: Stage Header + SFX Toggle */}
       <div className="flex flex-wrap items-center justify-between border-b border-zinc-800/80 pb-3 mb-4 gap-3">
         <div className="flex items-center gap-3">

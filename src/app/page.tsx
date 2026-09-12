@@ -99,6 +99,7 @@ export default function Home() {
       {latest && (
         <MarioHero
           latestReset={latest}
+          scheduledReset={statusData?.scheduled_reset}
           onCoinChange={handleCoinChange}
           onOpenSubscribe={() => setIsSubscribeOpen(true)}
           avgIntervalDays={stats.avg_interval_days}

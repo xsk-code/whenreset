@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fallbackResets from "@/data/fallback-resets.json";
-import { ResetItem, StatusResponse } from "@/lib/types";
+import fallbackScheduled from "@/data/fallback-scheduled.json";
+import { ResetItem, StatusResponse, ScheduledReset } from "@/lib/types";
 import { calculateStats } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -25,7 +26,7 @@ export async function GET() {
       const localResets = fallbackResets as ResetItem[];
       const localLatest = localResets[0];
       
-      // If local dataset has a newer reset than upstream, use local latest & recompute stats
+      // If local dataset has a newer completed reset than upstream, use local latest & recompute stats
       if (localLatest && data?.data?.latest_reset) {
         const localTime = new Date(localLatest.announced_at).getTime();
         const upstreamTime = new Date(data.data.latest_reset.announced_at).getTime();
@@ -64,7 +65,7 @@ export async function GET() {
   const response: StatusResponse = {
     data: {
       latest_reset: latestReset,
-      scheduled_reset: null,
+      scheduled_reset: (fallbackScheduled as ScheduledReset) || null,
       active_watch: null,
       stats,
     },
