@@ -161,6 +161,26 @@ Options:
     }
   }
 
+  // Also check if status has an active scheduled_reset announced by Tibo
+  const scheduledReset = statusData?.data?.scheduled_reset;
+  if (scheduledReset && scheduledReset.id && !localIds.has(String(scheduledReset.id))) {
+    const scheduledItem = {
+      id: String(scheduledReset.id),
+      reset_type: scheduledReset.reset_type || "regular",
+      announced_at: scheduledReset.announced_at || new Date().toISOString(),
+      text: scheduledReset.text || "And of course, a reset is also landing by midnight today.",
+      source: scheduledReset.source || {
+        type: "x_post",
+        author: "thsottiaux",
+        url: `https://x.com/thsottiaux/status/${scheduledReset.id}`,
+      },
+    };
+    localResets.unshift(scheduledItem);
+    localIds.add(String(scheduledReset.id));
+    newUpstreamCount++;
+    console.log(`🚀 [BREAKING] Detected newly scheduled reset announced by Tibo: id=${scheduledReset.id}!`);
+  }
+
   if (newUpstreamCount > 0) {
     updated = true;
     console.log(`🎉 Found ${newUpstreamCount} new reset(s) from upstream.`);

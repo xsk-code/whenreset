@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { StatusStats, ResetItem, ActiveWatch } from "@/lib/types";
+import { StatusStats, ResetItem, ActiveWatch, ScheduledReset } from "@/lib/types";
 import {
   calculateWatchProbability,
   playMarioCoinSound,
@@ -15,6 +15,7 @@ interface MarioWatchProps {
   stats: StatusStats;
   latestReset?: ResetItem;
   activeWatch?: ActiveWatch | null;
+  scheduledReset?: ScheduledReset | null;
 }
 
 type BetChoice = "yes" | "no";
@@ -23,22 +24,29 @@ const LOCAL_STORAGE_KEY = "whenreset_watch_bet_choice";
 const BASELINE_YES_VOTES = 724;
 const BASELINE_NO_VOTES = 246;
 
-export function MarioWatch({ stats, latestReset, activeWatch }: MarioWatchProps) {
+export function MarioWatch({
+  stats,
+  latestReset,
+  activeWatch,
+  scheduledReset,
+}: MarioWatchProps) {
   const { t } = useLanguage();
   const [userBet, setUserBet] = useState<BetChoice | null>(null);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
-  // Dynamic probability calculation: prioritize real-time forecast from upstream if available
-  const probability =
-    typeof activeWatch?.reset_chance_percent === "number"
-      ? activeWatch.reset_chance_percent
-      : typeof activeWatch?.probability === "number"
-      ? activeWatch.probability
-      : calculateWatchProbability(
-          stats.days_since_last,
-          stats.avg_interval_days
-        );
+  // If a scheduled reset has already been officially announced by Tibo, probability is 100%
+  const isScheduled = !!scheduledReset;
+  const probability = isScheduled
+    ? 100
+    : typeof activeWatch?.reset_chance_percent === "number"
+    ? activeWatch.reset_chance_percent
+    : typeof activeWatch?.probability === "number"
+    ? activeWatch.probability
+    : calculateWatchProbability(
+        stats.days_since_last,
+        stats.avg_interval_days
+      );
 
   // Load vote from localStorage on mount
   useEffect(() => {
@@ -76,17 +84,21 @@ export function MarioWatch({ stats, latestReset, activeWatch }: MarioWatchProps)
 
   // Threat level classification
   const isCritical =
-    activeWatch?.level === "critical" || probability >= 75;
+    isScheduled || activeWatch?.level === "critical" || probability >= 75;
   const isElevated =
-    activeWatch?.level === "elevated" || (probability >= 45 && probability < 75);
+    !isScheduled && (activeWatch?.level === "elevated" || (probability >= 45 && probability < 75));
 
-  const threatLabel = isCritical
+  const threatLabel = isScheduled
+    ? "⭐ RESET CONFIRMED - LANDING TODAY"
+    : isCritical
     ? t.watch.threatCritical
     : isElevated
     ? t.watch.threatElevated
     : t.watch.threatLow;
 
-  const threatColor = isCritical
+  const threatColor = isScheduled
+    ? "text-mario-green"
+    : isCritical
     ? "text-mario-red"
     : isElevated
     ? "text-mario-coin"
@@ -218,8 +230,53 @@ export function MarioWatch({ stats, latestReset, activeWatch }: MarioWatchProps)
 
             {/* Castle Intel Box */}
             <div className="border-2 border-black bg-[#141622] p-3 sm:p-4 rounded-none shadow-pixel-sm space-y-3">
-              {/* If Tibo has an active signal/tweet recorded */}
-              {activeWatch?.text ? (
+              {/* If an official reset is scheduled */}
+              {scheduledReset ? (
+                <div className="border-2 border-dashed border-mario-green bg-[#112318] p-3 sm:p-4 rounded-none shadow-pixel-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 font-pixel text-[10px] sm:text-[11px] text-mario-green">
+                      <span className="animate-pixel-blink text-base select-none">⭐</span>
+                      <span>{t.watch.scheduledTitle || "OFFICIAL RESET SCHEDULED BY TIBO (@thsottiaux)"}</span>
+                    </div>
+                    {scheduledReset.announced_at && (
+                      <span className="font-mono text-[10px] text-zinc-300 bg-black/60 px-1.5 py-0.5 border border-black">
+                        {new Date(scheduledReset.announced_at).toISOString().replace("T", " ").slice(0, 16)} UTC
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Tibo's Scheduled Tweet Text */}
+                  <blockquote className="font-mono text-xs sm:text-sm text-zinc-100 border-l-2 border-mario-green pl-2.5 my-2 italic leading-relaxed">
+                    “{scheduledReset.text}”
+                  </blockquote>
+
+                  {/* Scheduled For & Direct Link */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-800/80">
+                    <div className="flex items-center gap-1.5 font-mono text-[11px] text-mario-green">
+                      <span className="font-pixel text-[9px] uppercase tracking-wider text-zinc-300">
+                        {t.watch.landingTime || "SCHEDULED FOR"}:
+                      </span>
+                      <span className="font-bold">
+                        {scheduledReset.scheduled_for
+                          ? new Date(scheduledReset.scheduled_for).toISOString().replace("T", " ").slice(11, 16) + " UTC"
+                          : "Midnight Today"}
+                      </span>
+                    </div>
+
+                    {scheduledReset.source?.url && (
+                      <a
+                        href={scheduledReset.source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-pixel text-[9px] text-[#1DA1F2] hover:text-[#55bcf7] hover:underline transition-colors"
+                      >
+                        <span>{t.watch.tiboSignalViewX || "[ VIEW ON X ↗ ]"}</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ) : activeWatch?.text ? (
                 <div className="border-2 border-dashed border-mario-coin/70 bg-[#171924] p-3 rounded-none shadow-pixel-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2 font-pixel text-[10px] sm:text-[11px] text-mario-coin">

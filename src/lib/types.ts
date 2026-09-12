@@ -36,9 +36,19 @@ export interface ActiveWatch {
   description?: string;
 }
 
+export interface ScheduledReset {
+  id: string;
+  status: "scheduled" | string;
+  reset_type: ResetType;
+  announced_at: string;
+  scheduled_for: string;
+  text: string;
+  source: ResetSource;
+}
+
 export interface StatusData {
   latest_reset: ResetItem;
-  scheduled_reset: unknown | null;
+  scheduled_reset: ScheduledReset | null;
   active_watch: ActiveWatch | null;
   stats: StatusStats;
 }

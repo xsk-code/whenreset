@@ -103,6 +103,8 @@ export interface TranslationDictionary {
     tiboSignalLive?: string;
     tiboSignalWindow?: string;
     tiboSignalViewX?: string;
+    scheduledTitle?: string;
+    landingTime?: string;
     betTitle: string;
     totalBets: string;
     betDesc: string;

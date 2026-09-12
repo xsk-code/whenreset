@@ -113,6 +113,7 @@ export default function Home() {
         stats={stats}
         latestReset={latest}
         activeWatch={statusData?.active_watch}
+        scheduledReset={statusData?.scheduled_reset}
       />
 
       {/* Stage 1-2: 26-Week Super Stage Pixel Heatmap */}
