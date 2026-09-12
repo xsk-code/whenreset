@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import fallbackResets from "@/data/fallback-resets.json";
-import { calculateStats, playMarioCoinSound, triggerHaptic } from "@/lib/utils";
+import { calculateStats, playMarioCoinSound, triggerHaptic, cn } from "@/lib/utils";
 import { ResetItem, ResetsResponse, StatusData, StatusResponse } from "@/lib/types";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { MarioHeader } from "@/components/mario/MarioHeader";
@@ -41,6 +41,8 @@ export default function Home() {
     setUserCoins(coins);
   }, []);
 
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+
   // Fetch latest resets & status from API endpoints concurrently
   const fetchData = useCallback(async (isManual = false) => {
     if (isManual) setIsRefreshing(true);
@@ -64,24 +66,44 @@ export default function Home() {
           setStatusData(statusJson.data);
         }
       }
+      setLastSyncTime(new Date());
     } catch (err) {
       console.warn("[WhenReset] Failed to refresh live data, keeping current data", err);
     } finally {
       if (isManual) {
-        setTimeout(() => setIsRefreshing(false), 500);
+        setTimeout(() => setIsRefreshing(false), 400);
       }
     }
   }, []);
 
-  // Initial client fetch and 60-second polling
+  // Ultra-fast client polling (10s if scheduled/active, 15s normally) + instant wakeup on tab switch
   useEffect(() => {
     fetchData();
+
+    const pollInterval = statusData?.scheduled_reset || statusData?.active_watch ? 10000 : 15000;
     const interval = setInterval(() => {
       fetchData();
-    }, 60000);
+    }, pollInterval);
 
-    return () => clearInterval(interval);
-  }, [fetchData]);
+    // Instant wakeup whenever tab gains focus or user switches back to browser tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchData();
+      }
+    };
+    const handleWindowFocus = () => {
+      fetchData();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [fetchData, statusData?.scheduled_reset, statusData?.active_watch]);
 
   const stats = calculateStats(resets);
   const latest = resets[0];
@@ -94,6 +116,36 @@ export default function Home() {
         userCoins={userCoins}
         onOpenSubscribe={() => setIsSubscribeOpen(true)}
       />
+
+      {/* Mini 8-Bit Live Sync Status Ribbon */}
+      <div className="w-full max-w-5xl flex items-center justify-between px-2 pt-1 pb-1 text-[10px] font-mono text-zinc-400">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-none bg-mario-green animate-pixel-blink inline-block" />
+          <span className="font-pixel text-[9px] text-zinc-300">
+            RADAR: {statusData?.scheduled_reset ? "BURST STREAM (10s)" : "LIVE STREAM (15s)"}
+          </span>
+          {lastSyncTime && (
+            <span className="hidden sm:inline text-zinc-500">
+              · PINGED {lastSyncTime.toTimeString().slice(0, 8)}
+            </span>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            playMarioCoinSound();
+            triggerHaptic(10);
+            fetchData(true);
+          }}
+          disabled={isRefreshing}
+          className="font-pixel text-[9px] text-mario-coin hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+          title="Force immediate ping to check upstream"
+        >
+          <span className={cn(isRefreshing && "animate-spin inline-block")}>🔄</span>
+          <span>{isRefreshing ? "PINGING..." : "[ PING NOW ]"}</span>
+        </button>
+      </div>
 
       {/* Main Hero: Question Block & Giant Countdown Clock */}
       {latest && (

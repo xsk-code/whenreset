@@ -2,8 +2,8 @@ name: Sync Tibo Radar & Upstream Resets
 
 on:
   schedule:
-    # Run every 30 minutes for near real-time tracking
-    - cron: "*/30 * * * *"
+    # Run every 5 minutes for ultra-fast real-time tracking
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       tweet_text:
@@ -50,7 +50,7 @@ jobs:
       - name: Check for data changes
         id: git-check
         run: |
-          if [ -n "$(git status --porcelain src/data/fallback-resets.json)" ]; then
+          if [ -n "$(git status --porcelain src/data/fallback-resets.json src/data/fallback-scheduled.json)" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -61,6 +61,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/data/fallback-resets.json
+          git add src/data/fallback-resets.json src/data/fallback-scheduled.json
           git commit -m "chore(data): auto sync Tibo signals & upstream resets [skip ci]"
           git push
