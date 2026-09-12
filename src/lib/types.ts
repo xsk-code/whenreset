@@ -23,8 +23,15 @@ export interface StatusStats {
 }
 
 export interface ActiveWatch {
-  active: boolean;
-  probability: number;
+  level?: "calm" | "elevated" | "critical" | string;
+  reset_chance_percent?: number;
+  forecast_window?: string | null;
+  observed_at?: string;
+  expires_at?: string | null;
+  text?: string;
+  source?: ResetSource;
+  active?: boolean;
+  probability?: number;
   title?: string;
   description?: string;
 }

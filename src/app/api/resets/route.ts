@@ -29,6 +29,20 @@ export async function GET(request: Request) {
 
     if (upstreamRes.ok) {
       const data: ResetsResponse = await upstreamRes.json();
+      const upstreamItems = Array.isArray(data?.data) ? data.data : [];
+      const localItems = fallbackResets as ResetItem[];
+      const upstreamIds = new Set(upstreamItems.map((item) => String(item.id)));
+      
+      // Keep any local records that upstream might have missed or delayed
+      const merged = [...upstreamItems];
+      for (const item of localItems) {
+        if (!upstreamIds.has(String(item.id))) {
+          merged.push(item);
+        }
+      }
+      merged.sort((a, b) => new Date(b.announced_at).getTime() - new Date(a.announced_at).getTime());
+      data.data = merged;
+
       return NextResponse.json(data, {
         status: 200,
         headers: {

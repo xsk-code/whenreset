@@ -99,6 +99,10 @@ export interface TranslationDictionary {
     };
     radarAnalysisTitle: string;
     radarAnalysisText: (avg: string, elapsed: string, date: string, prob: number) => string;
+    tiboSignalTitle?: string;
+    tiboSignalLive?: string;
+    tiboSignalWindow?: string;
+    tiboSignalViewX?: string;
     betTitle: string;
     totalBets: string;
     betDesc: string;

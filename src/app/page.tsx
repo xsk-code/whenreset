@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import fallbackResets from "@/data/fallback-resets.json";
 import { calculateStats, playMarioCoinSound, triggerHaptic } from "@/lib/utils";
-import { ResetItem, ResetsResponse } from "@/lib/types";
+import { ResetItem, ResetsResponse, StatusData, StatusResponse } from "@/lib/types";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { MarioHeader } from "@/components/mario/MarioHeader";
 import { MarioLogo } from "@/components/mario/MarioLogo";
@@ -20,6 +20,7 @@ import { Mail, Copy, Check, MessageSquare } from "lucide-react";
 export default function Home() {
   const [isSubscribeOpen, setIsSubscribeOpen] = useState<boolean>(false);
   const [resets, setResets] = useState<ResetItem[]>(() => fallbackResets as ResetItem[]);
+  const [statusData, setStatusData] = useState<StatusData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [userCoins, setUserCoins] = useState<number>(0);
   const [copiedEmail, setCopiedEmail] = useState<boolean>(false);
@@ -40,19 +41,31 @@ export default function Home() {
     setUserCoins(coins);
   }, []);
 
-  // Fetch latest resets from the API endpoint
-  const fetchResets = useCallback(async (isManual = false) => {
+  // Fetch latest resets & status from API endpoints concurrently
+  const fetchData = useCallback(async (isManual = false) => {
     if (isManual) setIsRefreshing(true);
     try {
-      const res = await fetch(`/api/resets?_t=${Date.now()}`);
-      if (res.ok) {
-        const data: ResetsResponse = await res.json();
+      const cacheBuster = `_t=${Date.now()}`;
+      const [resetsRes, statusRes] = await Promise.allSettled([
+        fetch(`/api/resets?${cacheBuster}`),
+        fetch(`/api/status?${cacheBuster}`),
+      ]);
+
+      if (resetsRes.status === "fulfilled" && resetsRes.value.ok) {
+        const data: ResetsResponse = await resetsRes.value.json();
         if (Array.isArray(data?.data) && data.data.length > 0) {
           setResets(data.data);
         }
       }
+
+      if (statusRes.status === "fulfilled" && statusRes.value.ok) {
+        const statusJson: StatusResponse = await statusRes.value.json();
+        if (statusJson?.data) {
+          setStatusData(statusJson.data);
+        }
+      }
     } catch (err) {
-      console.warn("[WhenReset] Failed to refresh resets, keeping current data", err);
+      console.warn("[WhenReset] Failed to refresh live data, keeping current data", err);
     } finally {
       if (isManual) {
         setTimeout(() => setIsRefreshing(false), 500);
@@ -62,13 +75,13 @@ export default function Home() {
 
   // Initial client fetch and 60-second polling
   useEffect(() => {
-    fetchResets();
+    fetchData();
     const interval = setInterval(() => {
-      fetchResets();
+      fetchData();
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [fetchResets]);
+  }, [fetchData]);
 
   const stats = calculateStats(resets);
   const latest = resets[0];
@@ -96,7 +109,11 @@ export default function Home() {
       <MarioStats stats={stats} />
 
       {/* Stage 1-2: Castle Radar Watch & Community Bet */}
-      <MarioWatch stats={stats} latestReset={latest} />
+      <MarioWatch
+        stats={stats}
+        latestReset={latest}
+        activeWatch={statusData?.active_watch}
+      />
 
       {/* Stage 1-2: 26-Week Super Stage Pixel Heatmap */}
       <MarioHeatmap resets={resets} />
@@ -104,7 +121,7 @@ export default function Home() {
       {/* Stage 1-3: Full Quests Stream Timeline with Live Refresh */}
       <MarioLog
         resets={resets}
-        onRefresh={() => fetchResets(true)}
+        onRefresh={() => fetchData(true)}
         isRefreshing={isRefreshing}
       />
 

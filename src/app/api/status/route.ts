@@ -22,6 +22,19 @@ export async function GET() {
 
     if (upstreamRes.ok) {
       const data: StatusResponse = await upstreamRes.json();
+      const localResets = fallbackResets as ResetItem[];
+      const localLatest = localResets[0];
+      
+      // If local dataset has a newer reset than upstream, use local latest & recompute stats
+      if (localLatest && data?.data?.latest_reset) {
+        const localTime = new Date(localLatest.announced_at).getTime();
+        const upstreamTime = new Date(data.data.latest_reset.announced_at).getTime();
+        if (localTime > upstreamTime) {
+          data.data.latest_reset = localLatest;
+          data.data.stats = calculateStats(localResets);
+        }
+      }
+
       return NextResponse.json(data, {
         status: 200,
         headers: {

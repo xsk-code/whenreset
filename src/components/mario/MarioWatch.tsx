@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { StatusStats, ResetItem } from "@/lib/types";
+import { StatusStats, ResetItem, ActiveWatch } from "@/lib/types";
 import {
   calculateWatchProbability,
   playMarioCoinSound,
@@ -14,6 +14,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 interface MarioWatchProps {
   stats: StatusStats;
   latestReset?: ResetItem;
+  activeWatch?: ActiveWatch | null;
 }
 
 type BetChoice = "yes" | "no";
@@ -22,17 +23,22 @@ const LOCAL_STORAGE_KEY = "whenreset_watch_bet_choice";
 const BASELINE_YES_VOTES = 724;
 const BASELINE_NO_VOTES = 246;
 
-export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
+export function MarioWatch({ stats, latestReset, activeWatch }: MarioWatchProps) {
   const { t } = useLanguage();
   const [userBet, setUserBet] = useState<BetChoice | null>(null);
   const [isClient, setIsClient] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
-  // Dynamic probability calculation
-  const probability = calculateWatchProbability(
-    stats.days_since_last,
-    stats.avg_interval_days
-  );
+  // Dynamic probability calculation: prioritize real-time forecast from upstream if available
+  const probability =
+    typeof activeWatch?.reset_chance_percent === "number"
+      ? activeWatch.reset_chance_percent
+      : typeof activeWatch?.probability === "number"
+      ? activeWatch.probability
+      : calculateWatchProbability(
+          stats.days_since_last,
+          stats.avg_interval_days
+        );
 
   // Load vote from localStorage on mount
   useEffect(() => {
@@ -69,8 +75,10 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
   }, []);
 
   // Threat level classification
-  const isCritical = probability >= 75;
-  const isElevated = probability >= 45 && probability < 75;
+  const isCritical =
+    activeWatch?.level === "critical" || probability >= 75;
+  const isElevated =
+    activeWatch?.level === "elevated" || (probability >= 45 && probability < 75);
 
   const threatLabel = isCritical
     ? t.watch.threatCritical
@@ -209,19 +217,70 @@ export function MarioWatch({ stats, latestReset }: MarioWatchProps) {
             </div>
 
             {/* Castle Intel Box */}
-            <div className="border-2 border-black bg-[#141622] p-3 sm:p-4 rounded-none shadow-pixel-sm">
-              <div className="flex items-center gap-2 font-pixel text-[11px] text-mario-coin mb-2">
-                <AlertTriangle size={14} className="text-mario-coin" />
-                <span>{t.watch.radarAnalysisTitle}</span>
+            <div className="border-2 border-black bg-[#141622] p-3 sm:p-4 rounded-none shadow-pixel-sm space-y-3">
+              {/* If Tibo has an active signal/tweet recorded */}
+              {activeWatch?.text ? (
+                <div className="border-2 border-dashed border-mario-coin/70 bg-[#171924] p-3 rounded-none shadow-pixel-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 font-pixel text-[10px] sm:text-[11px] text-mario-coin">
+                      <span className="animate-pixel-blink text-sm select-none">🍄</span>
+                      <span>{t.watch.tiboSignalTitle || "TIBO'S LATEST SIGNAL (@thsottiaux)"}</span>
+                    </div>
+                    {activeWatch.observed_at && (
+                      <span className="font-mono text-[10px] text-zinc-400 bg-black/60 px-1.5 py-0.5 border border-black">
+                        {new Date(activeWatch.observed_at).toISOString().replace("T", " ").slice(0, 16)} UTC
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Tibo's Tweet Text */}
+                  <blockquote className="font-mono text-xs sm:text-sm text-zinc-100 border-l-2 border-mario-coin pl-2.5 my-2 italic leading-relaxed">
+                    “{activeWatch.text}”
+                  </blockquote>
+
+                  {/* Forecast Window & Direct Link */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-zinc-800/80">
+                    {activeWatch.forecast_window ? (
+                      <div className="flex items-center gap-1.5 font-mono text-[11px] text-amber-400">
+                        <span className="font-pixel text-[9px] uppercase tracking-wider text-zinc-400">
+                          {t.watch.tiboSignalWindow || "FORECAST"}:
+                        </span>
+                        <span className="font-bold">{activeWatch.forecast_window}</span>
+                      </div>
+                    ) : (
+                      <div />
+                    )}
+
+                    {activeWatch.source?.url && (
+                      <a
+                        href={activeWatch.source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-pixel text-[9px] text-[#1DA1F2] hover:text-[#55bcf7] hover:underline transition-colors"
+                      >
+                        <span>{t.watch.tiboSignalViewX || "[ VIEW ON X ↗ ]"}</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Standard Cycle Drift Analysis */}
+              <div>
+                <div className="flex items-center gap-2 font-pixel text-[11px] text-mario-coin mb-1.5">
+                  <AlertTriangle size={14} className="text-mario-coin" />
+                  <span>{t.watch.radarAnalysisTitle}</span>
+                </div>
+                <p className="font-mono text-xs text-zinc-300 leading-relaxed">
+                  {t.watch.radarAnalysisText(
+                    stats.avg_interval_days.toFixed(1),
+                    stats.days_since_last.toFixed(1),
+                    latestReset ? latestReset.announced_at.slice(0, 10) : "recently",
+                    probability
+                  )}
+                </p>
               </div>
-              <p className="font-mono text-xs text-zinc-300 leading-relaxed">
-                {t.watch.radarAnalysisText(
-                  stats.avg_interval_days.toFixed(1),
-                  stats.days_since_last.toFixed(1),
-                  latestReset ? latestReset.announced_at.slice(0, 10) : "recently",
-                  probability
-                )}
-              </p>
             </div>
           </div>
         </div>

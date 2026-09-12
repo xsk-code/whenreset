@@ -101,6 +101,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       radarAnalysisTitle: "RADAR ANALYSIS & CYCLE DRIFT",
       radarAnalysisText: (avg, elapsed, date, prob) =>
         `OpenAI Codex historically resets on an average cadence of ${avg} days. With ${elapsed} days elapsed since the last reset on ${date}, our 8-bit model projects a ${prob}% likelihood of quota drops occurring within the immediate operational window.`,
+      tiboSignalTitle: "TIBO'S LATEST SIGNAL (@thsottiaux)",
+      tiboSignalLive: "[ LIVE X POST ]",
+      tiboSignalWindow: "FORECAST WINDOW",
+      tiboSignalViewX: "[ VIEW ON X ↗ ]",
       betTitle: "COMMUNITY PROP BET: WILL QUOTA RESET IN <24 HOURS?",
       totalBets: "Total Bets Cast:",
       betDesc: "Pick your side and place your pixel token. Stored locally in your retro cart memory!",
@@ -340,6 +344,10 @@ export const translations: Record<Language, TranslationDictionary> = {
       radarAnalysisTitle: "雷达分析与周期漂移",
       radarAnalysisText: (avg, elapsed, date, prob) =>
         `根据历史数据，OpenAI Codex 额度重置的平均周期约为 ${avg} 天。自上一次重置（${date}）至今已过去 ${elapsed} 天，我们的 8-Bit 测算模型评估当前周期内发生额度重置的概率为 ${prob}%。`,
+      tiboSignalTitle: "TIBO 最新推特侦测情报 (@thsottiaux)",
+      tiboSignalLive: "[ 实时 X 信号 ]",
+      tiboSignalWindow: "预估释放窗口",
+      tiboSignalViewX: "[ 在 X 查看原推 ↗ ]",
       betTitle: "社区预测押注: 24小时内是否会重置额度？",
       totalBets: "累计参与预测人次:",
       betDesc: "选定你的阵营并投入像素代币，已保存在你的复古卡带记忆卡中！",
