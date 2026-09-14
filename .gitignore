@@ -33,3 +33,6 @@ next-env.d.ts
 
 # multiagent cards local symlink
 /cards
+
+# workbuddy agent local workspace (memory logs, temp artifacts)
+/.workbuddy/
