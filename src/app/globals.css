@@ -1,158 +1,69 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg-sky: #60A5FA;
-  --bg-ground: #22C55E;
-  --bg-dark: #12141D;
-  --card-light: #FFFFFF;
-  --card-dark: #191C28;
+  --bg-main: #080B11;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
 }
 
 body {
-  font-family: 'JetBrains Mono', monospace;
-  background-color: var(--bg-dark);
-  color: #E2E8F0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* NES Retro Pixel Rules */
-.font-pixel {
-  image-rendering: pixelated;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: none;
+/* Frosted Glass Modern Panels */
+.glass-panel {
+  background: rgba(15, 20, 32, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
 }
 
-/* Calmer Pixel Borders & Shadows */
-.pixel-border {
-  border: 2px solid #000000;
-  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.75);
+.glass-panel-subtle {
+  background: rgba(18, 24, 38, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.pixel-border-sm {
-  border: 1.5px solid #000000;
-  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.65);
+.glass-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(8px);
 }
 
-.pixel-btn {
-  border: 2px solid #000000;
-  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.75);
-  transition: transform 0.05s ease, box-shadow 0.05s ease;
-  user-select: none;
+/* Subtle dot-grid developer background */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
 }
 
-.pixel-btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.85);
+/* Sleek custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.pixel-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.6);
+::-webkit-scrollbar-track {
+  background: rgba(10, 13, 20, 0.8);
 }
 
-/* Coin Pop & Block Hit Animations */
-@keyframes coinPop {
-  0% {
-    transform: translateY(0) scale(0.8);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-    transform: translateY(-20px) scale(1.2);
-  }
-  80% {
-    opacity: 1;
-    transform: translateY(-50px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-70px) scale(0.7);
-  }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
 }
 
-.animate-coin-pop {
-  animation: coinPop 0.65s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
-
-@keyframes blockHit {
-  0% { transform: translateY(0); }
-  25% { transform: translateY(-8px); }
-  60% { transform: translateY(-2px); }
-  100% { transform: translateY(0); }
-}
-
-.animate-block-hit {
-  animation: blockHit 0.22s ease-out;
-}
-
-@keyframes pixelBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-
-.animate-pixel-blink {
-  animation: pixelBlink 1.5s infinite ease-in-out;
-}
-
-/* 8-bit Scanline / Mesh Effect */
-.bg-scanline {
-  background-size: 100% 4px;
-  background-image: linear-gradient(
-    rgba(18, 16, 16, 0) 50%,
-    rgba(0, 0, 0, 0.15) 50%
-  );
-}
-
-@keyframes questionGlow {
-  0%, 100% {
-    filter: drop-shadow(0 0 0px #FBD000);
-  }
-  50% {
-    filter: drop-shadow(0 0 8px #FBD000);
-  }
-}
-
-.animate-question-glow {
-  animation: questionGlow 2.4s infinite ease-in-out;
-}
-
-/* Bowser Castle Red Alert Pulse */
-@keyframes castlePulse {
-  0%, 100% {
-    border-color: #E52521;
-    box-shadow: 4px 4px 0px #000000, 0 0 12px rgba(229, 37, 33, 0.4);
-  }
-  50% {
-    border-color: #B84418;
-    box-shadow: 4px 4px 0px #000000, 0 0 4px rgba(229, 37, 33, 0.1);
-  }
-}
-
-.animate-castle-pulse {
-  animation: castlePulse 1.8s infinite ease-in-out;
-}
-
-/* NES Custom Scrollbar for Heatmap */
-.pixel-scrollbar::-webkit-scrollbar {
-  height: 8px;
-}
-
-.pixel-scrollbar::-webkit-scrollbar-track {
-  background: #0F111A;
-  border: 1px solid #000000;
-}
-
-.pixel-scrollbar::-webkit-scrollbar-thumb {
-  background: #FBD000;
-  border: 1px solid #000000;
-}
-
-.pixel-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #FED626;
-}
-
