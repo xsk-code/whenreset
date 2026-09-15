@@ -1,9 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ResetItem } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/utils";
 import { ForecastResult } from "@/lib/forecast";
+import {
+  formatZoneOffset,
+  formatZonedTime,
+  isValidTimeZone,
+  orderZones,
+} from "@/lib/timezones";
 import {
   Calendar,
   Bell,
@@ -14,6 +20,7 @@ import {
   Sparkles,
   AlertCircle,
   Activity,
+  Globe,
 } from "lucide-react";
 
 interface ForecastHeroProps {
@@ -163,6 +170,29 @@ export const ForecastHero: React.FC<ForecastHeroProps> = ({
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
   }, [targetMs]);
+
+  // The viewer's zone is only knowable in the browser, so it starts null and
+  // fills in after mount. Server and first client render therefore both fall
+  // back to UTC and stay identical (no hydration mismatch), and because the
+  // value is an explicit IANA id the clock reading itself is deterministic.
+  const [localZone, setLocalZone] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (zone && isValidTimeZone(zone)) setLocalZone(zone);
+    } catch {
+      // Leave null: the list still renders, just without a highlighted row.
+    }
+  }, []);
+
+  const zoneRows = useMemo(() => orderZones(localZone), [localZone]);
+  const displayZone = localZone ?? "UTC";
+
+  // A scheduled reset pins one absolute instant. The countdown below is already
+  // that instant; this list adds the reading on each region's wall clock, which
+  // is the only thing that genuinely differs by time zone.
+  const displayOffset = formatZoneOffset(targetDate, displayZone);
 
   const likelihoodColor =
     likelihood >= 80
@@ -357,13 +387,16 @@ export const ForecastHero: React.FC<ForecastHeroProps> = ({
                   : "ESTIMATED NEXT RESET COUNTDOWN"}
               </span>
             </span>
-            <span className="text-xs text-slate-400 font-mono">
-              {targetDate.toLocaleDateString(isZh ? "zh-CN" : "en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+            <span className="flex flex-wrap items-center justify-end gap-1.5 font-mono text-xs text-slate-400">
+              {scheduled && (
+                <span className="rounded-sm border border-rose-500/45 bg-rose-500/15 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-rose-300">
+                  {isZh ? "官方时刻" : "OFFICIAL"}
+                </span>
+              )}
+              <span className="text-slate-200">
+                {formatZonedTime(targetDate, displayZone, lang)}
+              </span>
+              <span className="text-slate-500">{displayOffset || "UTC"}</span>
             </span>
           </div>
 
@@ -403,35 +436,92 @@ export const ForecastHero: React.FC<ForecastHeroProps> = ({
             </div>
           </div>
 
-          <p className="text-xs text-slate-400 mt-2">
-            {isZh
-              ? `* 预测窗口 ${forecast.windowStart.toLocaleString("zh-CN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  month: "short",
-                  day: "numeric",
-                })} — ${forecast.windowEnd.toLocaleString("zh-CN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  month: "short",
-                  day: "numeric",
-                })}，基于 ${forecast.sampleSize} 段真实重置间隔的中位数 ${forecast.medianIntervalDays.toFixed(
-                  1
-                )} 天，非官方时刻表。`
-              : `* Forecast window ${forecast.windowStart.toLocaleString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  month: "short",
-                  day: "numeric",
-                })} — ${forecast.windowEnd.toLocaleString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  month: "short",
-                  day: "numeric",
-                })}. Based on the ${forecast.medianIntervalDays.toFixed(
-                  1
-                )}d median of ${forecast.sampleSize} real reset intervals. Unofficial.`}
-          </p>
+          {/* A scheduled reset pins one exact instant, so the ±hour forecast
+              window — and its "unofficial" disclaimer — no longer describes
+              anything. It is replaced by that same instant read off each
+              region's clock. Every other tier keeps the forecast footnote. */}
+          {scheduled ? (
+            <div className="mt-4 rounded-lg border border-rose-500/25 bg-rose-500/[0.06] p-3">
+              <div className="mb-2 flex items-center space-x-1.5 text-[10px] font-semibold uppercase tracking-wider text-rose-300">
+                <Globe className="h-3 w-3" />
+                <span>
+                  {isZh ? "官方时刻 · 各时区本地钟点" : "OFFICIAL TIME · LOCAL CLOCK BY ZONE"}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {zoneRows.map((zone) => (
+                  <div
+                    key={zone.id}
+                    className={`rounded-md border px-2.5 py-1.5 ${
+                      zone.isLocal
+                        ? "border-rose-400/60 bg-rose-500/15"
+                        : "border-white/10 bg-[#080B11]/60"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span
+                        className={`text-[10px] font-semibold uppercase tracking-wide ${
+                          zone.isLocal ? "text-rose-200" : "text-slate-400"
+                        }`}
+                      >
+                        {isZh ? zone.labelZh : zone.labelEn}
+                      </span>
+                      {zone.isLocal && (
+                        <span className="rounded-sm bg-rose-400/30 px-1 text-[9px] font-bold text-rose-50">
+                          {isZh ? "你的" : "YOU"}
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      className={`font-mono text-xs font-bold ${
+                        zone.isLocal ? "text-rose-100" : "text-slate-200"
+                      }`}
+                    >
+                      {formatZonedTime(targetDate, zone.id, lang)}
+                    </div>
+                    <div className="font-mono text-[9px] text-slate-500">
+                      {formatZoneOffset(targetDate, zone.id)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[10px] text-slate-400">
+                {isZh
+                  ? "以上是同一个绝对时刻在各地时钟上的读数，换算取自 IANA 时区数据库，已包含夏令时。"
+                  : "One absolute instant, read off each local clock. Converted via the IANA time-zone database, DST included."}
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 mt-2">
+              {isZh
+                ? `* 预测窗口 ${forecast.windowStart.toLocaleString("zh-CN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    month: "short",
+                    day: "numeric",
+                  })} — ${forecast.windowEnd.toLocaleString("zh-CN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    month: "short",
+                    day: "numeric",
+                  })}，基于 ${forecast.sampleSize} 段真实重置间隔的中位数 ${forecast.medianIntervalDays.toFixed(
+                    1
+                  )} 天，非官方时刻表。`
+                : `* Forecast window ${forecast.windowStart.toLocaleString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    month: "short",
+                    day: "numeric",
+                  })} — ${forecast.windowEnd.toLocaleString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    month: "short",
+                    day: "numeric",
+                  })}. Based on the ${forecast.medianIntervalDays.toFixed(
+                    1
+                  )}d median of ${forecast.sampleSize} real reset intervals. Unofficial.`}
+            </p>
+          )}
         </div>
       </div>
 
