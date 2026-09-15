@@ -29,6 +29,11 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
+      feishu_self_test:
+        description: "Send a Feishu self-test message to prove the notification channel works (writes nothing)"
+        required: false
+        type: boolean
+        default: false
       tweet_text:
         description: "Confirmed announcement text (enables the ingest path)"
         required: false
@@ -92,6 +97,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      # Runs before the health gate on purpose: whether the notification
+      # credentials work is independent of whether the dataset is healthy, and
+      # a self-test is exactly what you reach for when something is wrong.
+      # It sends a fixed message with no confirm link, so it cannot write.
+      - name: Feishu channel self-test (dispatched only, writes nothing)
+        if: github.event.inputs.feishu_self_test == 'true'
+        run: node scripts/notify-feishu.mjs --self-test
 
       - name: Data health gate (read-only, fails the run when unhealthy)
         run: node scripts/check-data-health.mjs

@@ -290,6 +290,136 @@ async function deliverViaApp({ appEnv, text, probe, dryRun }) {
   process.exit(1);
 }
 
+const SELF_TEST_REQUIRED_KEYS = [
+  "FEISHU_APP_ID",
+  "FEISHU_APP_SECRET",
+  "FEISHU_RECEIVE_ID",
+  "FEISHU_RECEIVE_ID_TYPE",
+];
+
+/**
+ * `--self-test` proves the notification channel end to end without waiting for
+ * upstream to report a record.
+ *
+ * The probe path only fires when upstream knows something we do not, so
+ * "does Feishu actually work?" would otherwise stay unanswered for an
+ * unpredictable stretch — possibly weeks. A configuration that has never once
+ * delivered anything looks identical to one that works and has had nothing to
+ * say.
+ *
+ * The message deliberately carries no confirm link. A diagnostic that could be
+ * clicked into a write would let a test inject a record into the dataset, and
+ * the link would point at a record that does not exist. Signing is covered by
+ * the contract tests; this only proves delivery.
+ */
+function selfTestText() {
+  return [
+    "[WhenReset] 飞书通道自测",
+    "",
+    "这是一条测试消息 —— 不是真实的重置公告。",
+    "它没有确认链接，点它不会往数据集里写入任何东西。",
+    "",
+    "收到它，说明这条链路已经打通：",
+    "  App 凭证 → tenant_access_token → im/v1/messages",
+    "权限、应用可用范围、版本发布均已生效。",
+    "",
+    `发送时间 ${new Date().toISOString()}`,
+  ].join("\n");
+}
+
+async function runSelfTest({ mode, appEnv, webhookUrl, webhookSecret, dryRun }) {
+  const text = selfTestText();
+
+  if (mode === "none") {
+    console.error(
+      "❌ [NOTIFY] Self-test requested, but no Feishu channel is configured."
+    );
+    console.error(
+      "   Set either the four FEISHU_APP_* variables or FEISHU_WEBHOOK_URL."
+    );
+    process.exit(1);
+  }
+
+  if (dryRun) {
+    console.log(text);
+    console.log(`\n(dry run) not sent. mode=${mode}, self-test.`);
+    process.exit(0);
+  }
+
+  if (mode === "app") {
+    const missing = SELF_TEST_REQUIRED_KEYS.filter((key) => !appEnv[key]);
+    if (missing.length > 0) {
+      console.error(
+        "❌ [NOTIFY] Self-test found an incomplete Feishu app configuration."
+      );
+      console.error(`   Missing: ${missing.join(", ")}`);
+      process.exit(1);
+    }
+
+    warnOnIdTypeMismatch(appEnv.FEISHU_RECEIVE_ID_TYPE, appEnv.FEISHU_RECEIVE_ID);
+
+    let res;
+    let echoed;
+    try {
+      ({ res, echoed } = await sendViaApp({
+        appId: appEnv.FEISHU_APP_ID,
+        appSecret: appEnv.FEISHU_APP_SECRET,
+        receiveId: appEnv.FEISHU_RECEIVE_ID,
+        receiveIdType: appEnv.FEISHU_RECEIVE_ID_TYPE,
+        text,
+      }));
+    } catch (err) {
+      console.error(`❌ [NOTIFY] Self-test failed at token exchange: ${err.message}`);
+      console.error(
+        "   Check the App ID/Secret, and that a version has been published."
+      );
+      process.exit(1);
+    }
+
+    if (res.ok && echoed?.code === 0) {
+      console.log(
+        "✅ [NOTIFY] Self-test delivered through the app channel " +
+          `(code 0, message_id=${echoed?.data?.message_id ?? "?"}).`
+      );
+      process.exit(0);
+    }
+
+    console.error(
+      `❌ [NOTIFY] Self-test rejected: HTTP ${res.status} ` +
+        `code=${echoed?.code ?? "?"} msg=${echoed?.msg ?? "(no body)"}`
+    );
+    console.error(
+      "   \"no permission\" → the app's availability scope must include the\n" +
+        "                     recipient, and the app version must be published."
+    );
+    process.exit(1);
+  }
+
+  const payload = await withFeishuSign(
+    { msg_type: "text", content: { text } },
+    webhookSecret
+  );
+  const res = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const echoed = await res.json().catch(() => null);
+
+  if (res.ok && echoed?.code === 0) {
+    console.log(
+      "✅ [NOTIFY] Self-test delivered through the webhook channel (code 0)."
+    );
+    process.exit(0);
+  }
+
+  console.error(
+    `❌ [NOTIFY] Self-test rejected: HTTP ${res.status} ` +
+      `code=${echoed?.code ?? "?"} msg=${echoed?.msg ?? "(no body)"}`
+  );
+  process.exit(1);
+}
+
 // ---------------------------------------------------------------------------
 
 function readInput(pathArg) {
@@ -407,6 +537,21 @@ async function main() {
   const missingAppKeys = Object.keys(appEnv).filter((key) => !appEnv[key]);
   const appAnyConfigured =
     missingAppKeys.length < Object.keys(appEnv).length;
+
+  // A self-test answers "does this channel actually work?" without waiting for
+  // upstream to report something. It short-circuits before the probe is read:
+  // whether the credentials are good has nothing to do with whether a record
+  // happens to be pending, and reading stdin first would block the run.
+  if (args.includes("--self-test")) {
+    await runSelfTest({
+      mode: appAnyConfigured ? "app" : webhookUrl ? "webhook" : "none",
+      appEnv,
+      webhookUrl,
+      webhookSecret,
+      dryRun,
+    });
+    return;
+  }
 
   const raw = await readInput(inputPath);
   let probe;
