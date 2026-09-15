@@ -186,7 +186,7 @@ npm run build
 | 环境变量 | 作用 | 未配置时的行为 |
 |---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | 站点域名，统一驱动 canonical / sitemap / ICS / 二维码 | 回退到 `https://whenreset.top` |
-| `CRON_SECRET` | 保护 `/api/cron/dispatch` 的 Bearer token | 不配置则该端点不校验身份（不推荐） |
+| `CRON_SECRET` | 保护 `/api/cron/dispatch` 与 `/api/cron/probe` 的 Bearer token（后者也接受 `?key=`，兼容不支持自定义请求头的定时器） | `/api/cron/dispatch` 不校验身份（不推荐）；`/api/cron/probe` **拒绝运行**并返回 503（fail closed） |
 | `ADMIN_BARK_KEY` | 每日摘要推送的 Bark 目标 | 跳过 Bark 投递 |
 | `ADMIN_WEBHOOK_URL` | 每日摘要推送的群机器人 Webhook（企微 / 飞书 / Discord / Slack，按目标主机自动选择载荷格式） | 跳过 Webhook 投递 |
 | `FEISHU_WEBHOOK_SECRET` | 飞书机器人签名校验密钥。命中飞书目标时用于签发 `timestamp` / `sign`；Actions 侧通知同样使用 | 不签名，仅适用于**未开启**签名校验的机器人 |
@@ -225,6 +225,26 @@ npm run build
   调用 `/api/push` 由服务端代理发出，避免 Webhook 的 CORS 限制。
 - `src/lib/notify-payload.ts` 是所有服务端群机器人通知的**载荷单一实现**（`/api/push` 与 `/api/cron/dispatch` 共用），按目标主机自动区分企微 / 飞书 / Discord / Slack 格式；非白名单目标直接 403，防止沦为开放 SSRF 中继。
 - 每日摘要由 Vercel Cron 触发（见 `vercel.json`，每天 09:00 UTC）。
+
+### 为什么探测需要一个外部定时器
+
+GitHub Actions 自带的 `schedule` 是 **best-effort**：官方文档写明高负载时排队的作业「**may be dropped**」，且**不提供任何执行保证**（最短间隔 5 分钟只是语法下限，不是可靠性承诺）。
+
+本仓库实测：`*/5 * * * *` 的 cron 实际平均约 **4.3 小时**才触发一次，约为期望次数的 **2%**。更麻烦的是被丢弃的触发**在 Actions 界面不留任何痕迹**，所有实际运行都显示 `success`，从界面上完全看不出异常。
+
+所以"5 分钟内发现上游新记录"**不能依赖 Actions 的 schedule**。改由外部定时器（任意支持 5 分钟间隔的免费 cron 服务）调用：
+
+```
+GET https://<域名>/api/cron/probe?key=<CRON_SECRET>
+```
+
+`Authorization: Bearer <CRON_SECRET>` 等价。成功返回 `202 Accepted`；`CRON_SECRET` 未配置时该端点返回 `503` 并**拒绝运行**，不会无鉴权触发。
+
+`vercel.json` 里那条每日 Cron 保留，作为兜底：即使外部定时器停摆，每天仍会有一次探测。
+
+> **为什么不让外部定时器直接调 GitHub API**：那需要把 PAT 交给第三方服务保管。该 PAT 即使只有 `Actions: write`，也足以触发 workflow 并传入 `tweet_text`，从而**写入数据集**。经站点中转后，外部服务只持有一个"仅能触发只读探测"的密钥。
+>
+> 端点本身**不写入任何数据**：它只是请求 GitHub 启动探测 workflow，而写入路径仍然要求人工确认的签名链接。
 - **自建应用通道只服务于「待确认记录」通知**（Actions 侧的 `scripts/notify-feishu.mjs`）。每日摘要与用户订阅仍走 Webhook 目标地址 —— 服务端无法为任意目标持有应用凭据，所以填了 `FEISHU_APP_*` 并不代表每日摘要也会改用应用投递。
 
 ### 数据入账与一键确认链路
