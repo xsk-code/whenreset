@@ -198,12 +198,22 @@ npm run build
 
 **GitHub Actions Secrets（仓库 Settings → Secrets and variables → Actions）**
 
-| Secret | 作用 | 未配置时的行为 |
-|---|---|---|
-| `FEISHU_WEBHOOK_URL` | 疑似重置记录的飞书群机器人地址 | 跳过飞书通知，GitHub Issue 照常开 |
-| `FEISHU_WEBHOOK_SECRET` | 飞书签名校验（与上表同名变量一致） | 不签名 |
-| `CONFIRM_SECRET` | 签发确认链接（**必须与 Vercel 的同名变量完全一致**） | 通知步骤报错退出，因为无法生成可点击的确认链接 |
+飞书通知有两条通道，**配置其中一条即可**：
 
+| Secret | 通道 | 作用 | 未配置时的行为 |
+|---|---|---|---|
+| `FEISHU_APP_ID` | 自建应用 | 开放平台应用的 App ID（`cli_…`） | 该通道不启用 |
+| `FEISHU_APP_SECRET` | 自建应用 | 应用的 App Secret | 该通道不启用 |
+| `FEISHU_RECEIVE_ID` | 自建应用 | 接收方 ID：`ou_…` 为 open_id，`oc_…` 为 chat_id | 该通道不启用 |
+| `FEISHU_RECEIVE_ID_TYPE` | 自建应用 | `open_id` 或 `chat_id`，必须与上面填的 ID 类型一致 | 该通道不启用 |
+| `FEISHU_WEBHOOK_URL` | 群机器人 | 飞书群自定义机器人地址 | 该通道不启用，GitHub Issue 照常开 |
+| `FEISHU_WEBHOOK_SECRET` | 群机器人 | 机器人签名校验密钥 | 不签名（仅适用于未开启签名校验的机器人） |
+| `CONFIRM_SECRET` | 两通道共用 | 签发确认链接（**必须与 Vercel 的同名变量完全一致**） | 通知步骤报错退出，因为无法生成可点击的确认链接 |
+
+> 两条通道的取舍：**群机器人只能发到它被添加的那个群，自建应用能直接发给某个人。** 需要确认的人只有一个时用自建应用；要广播给一个团队群时用群机器人。
+>
+> 应用通道的 4 个变量必须**同时配置或同时留空**。只配一半时脚本会报错退出，而不是静默回退到 Webhook —— 否则一个从未生效过的配置会看起来是正常的。
+>
 > 注意：`CONFIRM_SECRET` 必须同时存在于 **Actions Secrets 与 Vercel 环境变量**，且值相同 —— 前者用它签发链接，后者用它校验链接。两者不一致时所有确认链接都会以 `bad_signature` 被拒。
 > 另外，`CONFIRM_SECRET` 与 `FEISHU_WEBHOOK_SECRET` 是两套独立密钥，**不要复用同一个值**。
 
@@ -215,13 +225,14 @@ npm run build
   调用 `/api/push` 由服务端代理发出，避免 Webhook 的 CORS 限制。
 - `src/lib/notify-payload.ts` 是所有服务端群机器人通知的**载荷单一实现**（`/api/push` 与 `/api/cron/dispatch` 共用），按目标主机自动区分企微 / 飞书 / Discord / Slack 格式；非白名单目标直接 403，防止沦为开放 SSRF 中继。
 - 每日摘要由 Vercel Cron 触发（见 `vercel.json`，每天 09:00 UTC）。
+- **自建应用通道只服务于「待确认记录」通知**（Actions 侧的 `scripts/notify-feishu.mjs`）。每日摘要与用户订阅仍走 Webhook 目标地址 —— 服务端无法为任意目标持有应用凭据，所以填了 `FEISHU_APP_*` 并不代表每日摘要也会改用应用投递。
 
 ### 数据入账与一键确认链路
 
 数据集的写入权限**只属于人**：上游竞品 API 只做探测与交叉校验，永不写入。完整链路：
 
 1. Actions 每 5 分钟运行 `sync-tibo.mjs --probe`（只读）。发现本地缺失的记录时退出码 3；
-2. 工作流开一条 GitHub Issue（审计留痕 + 兜底），并把待确认记录推送到飞书群；
+2. 工作流开一条 GitHub Issue（审计留痕 + 兜底），并把待确认记录推送到飞书（自建应用私聊或群机器人）；
 3. 飞书消息里每条记录带一个签名链接 `https://<站点>/confirm?t=<token>`；
 4. 打开链接 → 页面核对记录 → 点「确认入账」→ `POST /api/confirm` → 经 GitHub API 触发入库 workflow；
 5. 入库由 `sync-tibo.mjs --add-tweet` 执行，写入时标记 `provenance: manual`。

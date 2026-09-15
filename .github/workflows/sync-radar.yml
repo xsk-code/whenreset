@@ -16,9 +16,10 @@ name: Radar Data Pipeline
 #     never writes.
 #   • sync-tibo.mjs --probe — read-only. Reports records upstream knows that
 #     we do not, and exits 3 so this workflow can raise a confirmation.
-#   • notify-feishu.mjs     — delivers the confirmation request to a Feishu
-#     group, with a one-click link. Deliberately NOT routed through the site:
-#     if whenreset.top is down, the person still has to be reachable.
+#   • notify-feishu.mjs     — delivers the confirmation request over Feishu,
+#     with a one-click link. Deliberately NOT routed through the site: if
+#     whenreset.top is down, the person still has to be reachable. Can post
+#     into a group bot or straight to one person through a self-built app.
 #   • sync-tibo.mjs --add-tweet — the ONLY write path, and it only runs on a
 #     manual dispatch or a confirmed one-click link. Upstream never writes.
 
@@ -69,8 +70,18 @@ jobs:
       # Secrets are lifted into env at job level because a step-level `if:`
       # cannot reference `secrets.*` directly — and the notification step has to
       # be skippable without turning the run red when the channel is unset.
+      #
+      # Two Feishu channels are supported and notify-feishu.mjs picks between
+      # them: a custom group bot (URL + optional signing secret) or a
+      # self-built app (App ID/Secret + recipient). Configure one of them —
+      # an app that can reach a person directly, rather than a group. A
+      # half-configured app is reported by the script, not silently downgraded.
       FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
       FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+      FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+      FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+      FEISHU_RECEIVE_ID: ${{ secrets.FEISHU_RECEIVE_ID }}
+      FEISHU_RECEIVE_ID_TYPE: ${{ secrets.FEISHU_RECEIVE_ID_TYPE }}
       CONFIRM_SECRET: ${{ secrets.CONFIRM_SECRET }}
       SITE_URL: ${{ vars.SITE_URL || 'https://whenreset.top' }}
     steps:
@@ -188,8 +199,11 @@ jobs:
       - name: Notify Feishu
         if: steps.probe.outputs.exit_code == '3' && steps.confirm.outputs.notify == 'true'
         run: |
-          if [ -z "$FEISHU_WEBHOOK_URL" ]; then
-            echo "FEISHU_WEBHOOK_URL is not configured; skipping."
+          # Either channel is enough to proceed. A half-configured app is the
+          # script's problem to report, not this guard's — so the guard only
+          # asks whether anything at all was configured.
+          if [ -z "$FEISHU_WEBHOOK_URL" ] && [ -z "$FEISHU_APP_ID" ]; then
+            echo "No Feishu channel configured (neither FEISHU_WEBHOOK_URL nor FEISHU_APP_ID)."
             echo "The confirmation issue above is the fallback — nothing is lost."
             exit 0
           fi
