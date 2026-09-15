@@ -4,12 +4,15 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import fallbackResets from "@/data/fallback-resets.json";
 import { ResetItem, ResetsResponse, StatusData, StatusResponse } from "@/lib/types";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { computeForecast, IncidentSignal } from "@/lib/forecast";
+import { useAlertGuardian } from "@/lib/useAlertGuardian";
 import { Header } from "@/components/dashboard/Header";
 import { ForecastHero } from "@/components/dashboard/ForecastHero";
 import { MetricsGrid } from "@/components/dashboard/MetricsGrid";
 import { SignalDesk } from "@/components/dashboard/SignalDesk";
 import { HistoryTable } from "@/components/dashboard/HistoryTable";
 import { FAQSection } from "@/components/dashboard/FAQSection";
+import { TopicMatrix } from "@/components/dashboard/TopicMatrix";
 import { Footer } from "@/components/dashboard/Footer";
 import { AlertModal } from "@/components/dashboard/AlertModal";
 import { ShareModal } from "@/components/dashboard/ShareModal";
@@ -18,6 +21,7 @@ export default function Home() {
   const { language, toggleLanguage } = useLanguage();
   const [resets, setResets] = useState<ResetItem[]>(() => fallbackResets as ResetItem[]);
   const [statusData, setStatusData] = useState<StatusData | null>(null);
+  const [incidentSignal, setIncidentSignal] = useState<IncidentSignal | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [activeModel, setActiveModel] = useState<string>("codex");
 
@@ -25,13 +29,14 @@ export default function Home() {
   const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
   const [isShareOpen, setIsShareOpen] = useState<boolean>(false);
 
-  // Fetch live resets and status concurrently
+  // Fetch live resets, status and OpenAI incidents concurrently
   const fetchData = useCallback(async () => {
     try {
       const cacheBuster = `_t=${Date.now()}`;
-      const [resetsRes, statusRes] = await Promise.allSettled([
+      const [resetsRes, statusRes, incidentRes] = await Promise.allSettled([
         fetch(`/api/resets?${cacheBuster}`),
         fetch(`/api/status?${cacheBuster}`),
+        fetch(`/api/incidents?${cacheBuster}`),
       ]);
 
       if (resetsRes.status === "fulfilled" && resetsRes.value.ok) {
@@ -47,6 +52,14 @@ export default function Home() {
           setStatusData(statusJson.data);
         }
       }
+
+      if (incidentRes.status === "fulfilled" && incidentRes.value.ok) {
+        const incidentJson = await incidentRes.value.json();
+        if (incidentJson?.data) {
+          setIncidentSignal(incidentJson.data as IncidentSignal);
+        }
+      }
+
       setLastSyncTime(new Date());
     } catch (err) {
       console.warn("[WhenReset] Live sync check, maintaining local fallback dataset", err);
@@ -80,30 +93,33 @@ export default function Home() {
     };
   }, [fetchData]);
 
-  // Derived values for share modal
-  const avgCadenceDays = statusData?.stats?.avg_interval_days || 3.3;
-  const daysSinceLast = statusData?.stats?.days_since_last || 0;
-  const scheduled = statusData?.scheduled_reset;
+  // Single source of truth for every prediction rendered on this page
+  const forecast = useMemo(() => {
+    return computeForecast({
+      resets,
+      stats: statusData?.stats ?? null,
+      scheduled: statusData?.scheduled_reset ?? null,
+      incident: incidentSignal,
+    });
+  }, [resets, statusData, incidentSignal]);
 
-  const likelihood = useMemo(() => {
-    if (scheduled) return 100;
-    return Math.min(95, Math.max(15, Math.round((daysSinceLast / avgCadenceDays) * 75)));
-  }, [scheduled, daysSinceLast, avgCadenceDays]);
+  // Fires the configured Bark / Webhook channels when thresholds are crossed
+  useAlertGuardian({
+    enabled: true,
+    forecastLikelihood: forecast.likelihood,
+    latestResetId: resets[0]?.id ?? null,
+    latestResetUrl: resets[0]?.source?.url ?? "",
+    lang: language,
+  });
 
   const estimatedNextDateStr = useMemo(() => {
-    const latestReset = resets[0];
-    const lastResetDate = latestReset ? new Date(latestReset.announced_at) : new Date();
-    const target = scheduled
-      ? new Date(scheduled.scheduled_for)
-      : new Date(lastResetDate.getTime() + avgCadenceDays * 24 * 60 * 60 * 1000);
-
-    return target.toLocaleDateString(language === "zh" ? "zh-CN" : "en-US", {
+    return forecast.targetDate.toLocaleDateString(language === "zh" ? "zh-CN" : "en-US", {
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
-  }, [resets, scheduled, avgCadenceDays, language]);
+  }, [forecast.targetDate, language]);
 
   return (
     <div className="min-h-screen bg-[#080B11] text-slate-100 bg-grid-pattern selection:bg-emerald-500/30 selection:text-emerald-300">
@@ -121,8 +137,8 @@ export default function Home() {
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         {/* Core Hero Forecast */}
         <ForecastHero
-          statusData={statusData}
           resets={resets}
+          forecast={forecast}
           lang={language}
           onOpenAlerts={() => setIsAlertsOpen(true)}
           onOpenShare={() => setIsShareOpen(true)}
@@ -131,15 +147,18 @@ export default function Home() {
         {/* 4 Key Metrics */}
         <MetricsGrid
           stats={statusData?.stats ?? null}
+          resets={resets}
+          forecast={forecast}
           lang={language}
-          totalResetsCount={resets.length}
         />
 
         {/* Signal Desk */}
         <SignalDesk
           latestReset={resets[0]}
+          resets={resets}
+          forecast={forecast}
+          incident={incidentSignal}
           lang={language}
-          daysSinceLast={daysSinceLast}
         />
 
         {/* Filterable History Table */}
@@ -147,25 +166,24 @@ export default function Home() {
 
         {/* SEO FAQ Section with JSON-LD */}
         <FAQSection lang={language} />
+
+        {/* Internal topic pages for Programmatic SEO */}
+        <TopicMatrix lang={language} />
       </main>
 
       {/* Footer */}
       <Footer lang={language} lastSyncTime={lastSyncTime} />
 
       {/* Developer Alert Hub Modal */}
-      <AlertModal
-        isOpen={isAlertsOpen}
-        onClose={() => setIsAlertsOpen(false)}
-        lang={language}
-      />
+      <AlertModal isOpen={isAlertsOpen} onClose={() => setIsAlertsOpen(false)} lang={language} />
 
       {/* Social Share Card Modal */}
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         lang={language}
-        likelihood={likelihood}
-        daysSinceLast={daysSinceLast}
+        likelihood={forecast.likelihood}
+        daysSinceLast={forecast.daysSinceLast}
         estimatedNextDate={estimatedNextDateStr}
       />
     </div>

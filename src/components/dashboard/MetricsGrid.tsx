@@ -1,28 +1,37 @@
 "use client";
 
 import React from "react";
-import { StatusStats } from "@/lib/types";
+import { ResetItem, StatusStats } from "@/lib/types";
+import { ForecastResult } from "@/lib/forecast";
 import { History, CalendarDays, TrendingUp, Users } from "lucide-react";
 
 interface MetricsGridProps {
   stats: StatusStats | null;
+  resets: ResetItem[];
+  forecast: ForecastResult;
   lang: "en" | "zh";
-  totalResetsCount: number;
 }
 
 export const MetricsGrid: React.FC<MetricsGridProps> = ({
   stats,
+  resets,
+  forecast,
   lang,
-  totalResetsCount,
 }) => {
   const isZh = lang === "zh";
 
-  const daysSince = stats?.days_since_last ?? 2.3;
-  const avgCadence = stats?.avg_interval_days ?? 3.3;
+  const daysSince = forecast.daysSinceLast;
   const longestWait = stats?.longest_wait_days ?? 67.7;
-  const total = stats?.total ?? totalResetsCount;
+  const total = resets.length;
 
-  // Format days and hours
+  // Real counting over the dataset, never hardcoded
+  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const last30 = resets.filter(
+    (r) => new Date(r.announced_at).getTime() >= thirtyDaysAgo
+  );
+  const globalDrops30 = last30.filter((r) => r.reset_type !== "banked").length;
+  const bankedCards30 = last30.length - globalDrops30;
+
   const fullDays = Math.floor(daysSince);
   const remainingHours = Math.round((daysSince - fullDays) * 24);
 
@@ -38,22 +47,16 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
         </div>
         <div className="flex items-baseline space-x-1.5 my-1 font-mono">
           <span className="text-3xl font-bold text-white">{fullDays}</span>
-          <span className="text-sm font-medium text-slate-400">
-            {isZh ? "天" : "d"}
-          </span>
-          <span className="text-3xl font-bold text-white ml-2">
-            {remainingHours}
-          </span>
-          <span className="text-sm font-medium text-slate-400">
-            {isZh ? "小时" : "h"}
-          </span>
+          <span className="text-sm font-medium text-slate-400">{isZh ? "天" : "d"}</span>
+          <span className="text-3xl font-bold text-white ml-2">{remainingHours}</span>
+          <span className="text-sm font-medium text-slate-400">{isZh ? "小时" : "h"}</span>
         </div>
         <div className="text-xs text-slate-400 mt-2">
           {isZh ? "持续消耗中 • 官方额度待刷新" : "Ongoing consumption window"}
         </div>
       </div>
 
-      {/* Metric 2: Resets in 30 Days */}
+      {/* Metric 2: Resets in 30 Days (counted from the real dataset) */}
       <div className="rounded-xl glass-panel p-5 border border-white/[0.08] hover:border-white/20 transition-all">
         <div className="flex items-center justify-between text-slate-400 mb-2">
           <span className="text-xs font-semibold uppercase tracking-wider">
@@ -62,12 +65,12 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
           <CalendarDays className="h-4 w-4 text-blue-400" />
         </div>
         <div className="flex items-baseline space-x-2 my-1 font-mono">
-          <span className="text-3xl font-bold text-white">6</span>
+          <span className="text-3xl font-bold text-white">{globalDrops30}</span>
           <span className="text-sm font-medium text-slate-400">
             {isZh ? "次全员" : "drops"}
           </span>
           <span className="text-xs font-semibold rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 ml-1">
-            +4 {isZh ? "张补偿卡" : "cards"}
+            +{bankedCards30} {isZh ? "张补偿卡" : "cards"}
           </span>
         </div>
         <div className="text-xs text-slate-400 mt-2">
@@ -79,20 +82,22 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
       <div className="rounded-xl glass-panel p-5 border border-white/[0.08] hover:border-white/20 transition-all">
         <div className="flex items-center justify-between text-slate-400 mb-2">
           <span className="text-xs font-semibold uppercase tracking-wider">
-            {isZh ? "历史平均掉落周期" : "TYPICAL CADENCE GAP"}
+            {isZh ? "历史掉落周期中位数" : "MEDIAN CADENCE GAP"}
           </span>
           <TrendingUp className="h-4 w-4 text-amber-400" />
         </div>
         <div className="flex items-baseline space-x-1.5 my-1 font-mono">
-          <span className="text-3xl font-bold text-white">{avgCadence}</span>
+          <span className="text-3xl font-bold text-white">
+            {forecast.medianIntervalDays.toFixed(1)}
+          </span>
           <span className="text-sm font-medium text-slate-400">
             {isZh ? "天 / 次" : "days"}
           </span>
         </div>
         <div className="text-xs text-slate-400 mt-2">
           {isZh
-            ? `历史最长干旱期：${longestWait} 天`
-            : `Longest drought recorded: ${longestWait}d`}
+            ? `基于 ${forecast.sampleSize} 段间隔 • 最长干旱 ${longestWait} 天`
+            : `${forecast.sampleSize} intervals • longest drought ${longestWait}d`}
         </div>
       </div>
 
@@ -109,9 +114,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
             {isZh ? "全部付费会员" : "All Paid Plans"}
           </span>
         </div>
-        <div className="text-xs text-slate-400 mt-2">
-          Plus, Pro, Business & Codex CLI
-        </div>
+        <div className="text-xs text-slate-400 mt-2">Plus, Pro, Business & Codex CLI</div>
       </div>
     </div>
   );
