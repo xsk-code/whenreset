@@ -43,9 +43,9 @@ const FAQ_LIST: FAQItem[] = [
     questionEn: "How accurate is the WhenReset forecast percentage?",
     questionZh: "WhenReset 的重置预测百分比准确吗？如何计算的？",
     answerEn:
-      "Our forecast is mathematical and data-driven: it tracks the median cadence (~3.3 days) across the last 10 official drops, combines cooldown decay, and factors in OpenAI incident reports and official team signals.",
+      "Three verifiable inputs are combined: the median gap between recorded official drops, a saturating cooldown-decay curve, and live incident data pulled from status.openai.com (worth up to +15 points). The breakdown card beside the probability lists every term and exactly how much it contributed. We never display 100% unless OpenAI itself has published a scheduled reset time, and the number never exceeds 97% from estimation alone.",
     answerZh:
-      "WhenReset 的预测是纯数学与数据驱动的：根据最近 10 次官方公开掉落的中位数周期（~3.3 天），结合冷却天数衰减模型、OpenAI 官方服务状态以及官方团队公开信号综合计算，绝不使用随机虚假数据。",
+      "预测由三项可核验的输入合成：历史公开掉落间隔的「中位数」、饱和式冷却衰减曲线，以及来自 status.openai.com 的实时故障数据（最高加成 +15 点）。概率旁边的明细卡会逐条列出每个因子及其实际贡献值。除非官方明确公告了重置时刻，否则我们绝不显示 100%，纯模型推算的上限为 97%。",
   },
 ];
 

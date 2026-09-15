@@ -54,26 +54,20 @@ export const Header: React.FC<HeaderProps> = ({
               OpenAI Codex
             </button>
             <button
-              onClick={() => onChangeModel("claude")}
-              className={`flex items-center space-x-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
-                activeModel === "claude"
-                  ? "bg-white/10 text-white shadow-sm"
-                  : "text-slate-400 hover:text-white"
-              }`}
+              disabled
+              title={isZh ? "尚未接入 Claude 公开数据源" : "No public Claude dataset wired yet"}
+              className="flex cursor-not-allowed items-center space-x-1.5 rounded-md px-3 py-1 text-xs font-medium text-slate-500"
             >
               <span>Claude Code</span>
-              <span className="rounded bg-white/10 px-1 py-0.2 text-[10px] text-slate-300">Soon</span>
+              <span className="rounded bg-white/10 px-1 py-0.2 text-[10px] text-slate-400">Soon</span>
             </button>
             <button
-              onClick={() => onChangeModel("grok")}
-              className={`flex items-center space-x-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
-                activeModel === "grok"
-                  ? "bg-white/10 text-white shadow-sm"
-                  : "text-slate-400 hover:text-white"
-              }`}
+              disabled
+              title={isZh ? "尚未接入 Grok 公开数据源" : "No public Grok dataset wired yet"}
+              className="flex cursor-not-allowed items-center space-x-1.5 rounded-md px-3 py-1 text-xs font-medium text-slate-500"
             >
               <span>Grok</span>
-              <span className="rounded bg-white/10 px-1 py-0.2 text-[10px] text-slate-300">Soon</span>
+              <span className="rounded bg-white/10 px-1 py-0.2 text-[10px] text-slate-400">Soon</span>
             </button>
           </nav>
         </div>
