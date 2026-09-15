@@ -2,10 +2,30 @@
 
 /**
  * scripts/sync-upstream.mjs
- * 
- * Lightweight ESM data synchronization script for WhenReset.
- * Fetches latest resets from public upstream, merges incrementally with deduplication,
- * and outputs a telemetry data health check report.
+ *
+ * Cross-check between the local dataset and the upstream API. READ-ONLY.
+ *
+ * This script used to merge upstream rows into `src/data/fallback-resets.json`
+ * and write the file. It no longer does, on purpose: upstream is a detector
+ * and a cross-check source, never an authority. Writing to the authoritative
+ * dataset is restricted to human-confirmed ingestion
+ * (`node scripts/sync-tibo.mjs --add-tweet ...`).
+ *
+ * What it reports:
+ *   • divergences   — same id, different `announced_at` (the arbitration rule
+ *                     is "later timestamp wins", so these change what the site
+ *                     would show)
+ *   • upstream-only — records upstream knows that we do not (candidates for
+ *                     human confirmation)
+ *   • local-only    — records we hold that upstream dropped (we never delete
+ *                     history on upstream's word)
+ *
+ * Cadence is reported as a MEDIAN over gaps in (0, 90) days — the same window
+ * and statistic the site's forecast uses. The old health report quoted an
+ * arithmetic mean, which is where the "6.9 day average cadence" in the
+ * marketing material came from while the site itself displayed ~3.0d.
+ *
+ * Exit codes: 0 clean / 1 fatal (upstream unreachable, dataset unreadable)
  */
 
 import { promises as fs } from "node:fs";
@@ -16,27 +36,29 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE_PATH = path.resolve(__dirname, "../src/data/fallback-resets.json");
 
-const DEFAULT_UPSTREAM_URL = "https://codex-resets.com/api/v1/resets";
+const DEFAULT_UPSTREAM_URL =
+  process.env.UPSTREAM_RESETS_URL || "https://codex-resets.com/api/v1/resets";
 const TIMEOUT_MS = 6000;
 const MAX_RETRIES = 2;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-/**
- * Parse CLI options
- */
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
-    dryRun: false,
     upstreamUrl: process.env.UPSTREAM_RESETS_URL || DEFAULT_UPSTREAM_URL,
+    json: false,
     help: false,
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg === "--dry-run" || arg === "-d") {
-      options.dryRun = true;
-    } else if (arg === "--upstream" && args[i + 1]) {
+    if (arg === "--upstream" && args[i + 1]) {
       options.upstreamUrl = args[++i];
+    } else if (arg === "--json") {
+      options.json = true;
+    } else if (arg === "--dry-run" || arg === "-d") {
+      // Kept for CLI compatibility: this script has no write path any more.
+      options.dryRun = true;
     } else if (arg === "--help" || arg === "-h") {
       options.help = true;
     }
@@ -46,98 +68,56 @@ function parseArgs() {
 }
 
 /**
- * Fetch with timeout and retry
+ * @returns {Promise<{ok: true, items: unknown[]} | {ok: false, error: string}>}
  */
 async function fetchUpstreamResets(url, retries = MAX_RETRIES) {
+  let lastError = "unreachable";
   for (let attempt = 1; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
       const res = await fetch(url, {
         signal: controller.signal,
-        headers: {
-          "User-Agent": "WhenReset-Radar-Sync/1.0",
-          Accept: "application/json",
-        },
+        headers: { "User-Agent": "WhenReset-Radar-Crosscheck/1.0", Accept: "application/json" },
       });
-      clearTimeout(timeoutId);
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      }
-
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
       const json = await res.json();
-      const items = Array.isArray(json) ? json : json.data;
-      if (Array.isArray(items)) {
-        return items;
-      }
-      throw new Error("Invalid response format: data is not an array");
+      const items = Array.isArray(json) ? json : json?.data;
+      if (!Array.isArray(items)) throw new Error("Invalid response format: data is not an array");
+      return { ok: true, items };
     } catch (err) {
-      if (attempt === retries) {
-        console.warn(`[WARN] Upstream fetch failed after ${retries} attempts: ${err.message}`);
-        return null;
-      }
-      // Wait before retry
-      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+      lastError = err?.message || "unreachable";
+      if (attempt < retries) await new Promise((r) => setTimeout(r, 1000 * attempt));
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
-  return null;
+  return { ok: false, error: lastError };
 }
 
-/**
- * Calculate health stats from resets dataset
- */
-function computeHealthStats(resets) {
-  if (!resets || resets.length === 0) {
-    return {
-      total: 0,
-      latest: null,
-      daysSinceLast: 0,
-      avgIntervalDays: 0,
-      longestWaitDays: 0,
-    };
-  }
-
+/** Gaps in (0, 90) days — identical to collectIntervals() in src/lib/forecast.ts. */
+function collectIntervals(resets) {
   const sorted = [...resets].sort(
     (a, b) => new Date(b.announced_at).getTime() - new Date(a.announced_at).getTime()
   );
-
-  const latest = sorted[0];
-  const now = Date.now();
-  const latestTime = new Date(latest.announced_at).getTime();
-  const daysSinceLast = Math.max(0, Number(((now - latestTime) / (1000 * 60 * 60 * 24)).toFixed(1)));
-
   const intervals = [];
   for (let i = 0; i < sorted.length - 1; i++) {
-    const tCurrent = new Date(sorted[i].announced_at).getTime();
-    const tPrevious = new Date(sorted[i + 1].announced_at).getTime();
-    const diffDays = (tCurrent - tPrevious) / (1000 * 60 * 60 * 24);
-    if (diffDays >= 0) {
-      intervals.push(diffDays);
-    }
+    const diff =
+      (new Date(sorted[i].announced_at).getTime() -
+        new Date(sorted[i + 1].announced_at).getTime()) /
+      DAY_MS;
+    if (diff > 0 && diff < 90) intervals.push(diff);
   }
-
-  const avgIntervalDays =
-    intervals.length > 0
-      ? Number((intervals.reduce((a, b) => a + b, 0) / intervals.length).toFixed(1))
-      : 0;
-
-  const longestWaitDays =
-    intervals.length > 0 ? Number(Math.max(...intervals).toFixed(1)) : 0;
-
-  return {
-    total: resets.length,
-    latest,
-    daysSinceLast,
-    avgIntervalDays,
-    longestWaitDays,
-  };
+  return intervals;
 }
 
-/**
- * Main execution
- */
+function median(values) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
 async function main() {
   const options = parseArgs();
 
@@ -145,85 +125,119 @@ async function main() {
     console.log(`
 Usage: node scripts/sync-upstream.mjs [options]
 
+Read-only cross-check between src/data/fallback-resets.json and upstream.
+Writes nothing; exits non-zero only on a fatal condition.
+
 Options:
-  -d, --dry-run     Check upstream and print health report without writing files
-  --upstream <url>  Specify custom upstream API endpoint
-  -h, --help        Show this help message
+  --upstream <url>  Override the upstream endpoint
+  --json            Emit a machine-readable summary on the last line
+  -h, --help        Show this message
 `);
     process.exit(0);
   }
 
-  console.log("🍄 [WhenReset Radar] Starting upstream synchronization...");
-
-  // 1. Read local dataset
-  let localResets = [];
+  let localResets;
   try {
-    const localContent = await fs.readFile(DATA_FILE_PATH, "utf-8");
-    localResets = JSON.parse(localContent);
+    const raw = await fs.readFile(DATA_FILE_PATH, "utf-8");
+    localResets = JSON.parse(raw);
+    if (!Array.isArray(localResets)) throw new Error("not an array");
   } catch (err) {
-    console.error(`[ERROR] Failed to read ${DATA_FILE_PATH}:`, err.message);
+    console.error(`❌ [CROSSCHECK] Cannot read dataset: ${err.message}`);
     process.exit(1);
   }
 
-  const localIds = new Set(localResets.map((r) => String(r.id)));
+  console.log(`📡 Cross-checking upstream: ${options.upstreamUrl}`);
+  const upstream = await fetchUpstreamResets(options.upstreamUrl);
 
-  // 2. Fetch from upstream
-  console.log(`📡 Connecting to upstream: ${options.upstreamUrl}`);
-  const upstreamResets = await fetchUpstreamResets(options.upstreamUrl);
-
-  const newItems = [];
-  if (upstreamResets && Array.isArray(upstreamResets)) {
-    for (const item of upstreamResets) {
-      if (item && item.id && !localIds.has(String(item.id))) {
-        newItems.push(item);
-      }
-    }
+  if (!upstream.ok) {
+    console.error(`❌ [CROSSCHECK] Upstream unreachable after ${MAX_RETRIES} attempts: ${upstream.error}`);
+    console.error("   Reporting FAILURE rather than an empty diff. A dead upstream is not");
+    console.error("   'no changes' — treating it as such is how the dataset silently stopped updating.");
+    console.log(`::crosscheck::${JSON.stringify({ ok: false, error: upstream.error })}`);
+    process.exit(1);
   }
 
-  // 3. Merge & sort descending
-  const mergedResets = [...newItems, ...localResets].sort(
-    (a, b) => new Date(b.announced_at).getTime() - new Date(a.announced_at).getTime()
+  const localById = new Map(localResets.map((r) => [String(r.id), r]));
+  const upstreamById = new Map(
+    upstream.items.filter((i) => i?.id).map((i) => [String(i.id), i])
   );
 
-  // 4. Compute statistics
-  const stats = computeHealthStats(mergedResets);
-
-  // 5. Print Telemetry Data Health Check Report
-  console.log("");
-  console.log("================================================================");
-  console.log("  ⚡ WHENRESET RADAR // DATA HEALTH CHECK REPORT ⚡");
-  console.log("================================================================");
-  console.log(`  📊 Total Resets Tracked : ${stats.total}`);
-  if (stats.latest) {
-    const previewText = (stats.latest.text || "").replace(/\n/g, " ").slice(0, 60);
-    console.log(`  ⭐ Latest Reset Time    : ${stats.latest.announced_at} (${stats.daysSinceLast}d ago)`);
-    console.log(`  🪙 Reset Type & ID      : [${stats.latest.reset_type.toUpperCase()}] id=${stats.latest.id}`);
-    console.log(`  📜 Latest Announcement  : "${previewText}..."`);
-  }
-  console.log(`  ⏱️  Average Cadence      : ${stats.avgIntervalDays} days between resets`);
-  console.log(`  🏰 Longest Wait Record  : ${stats.longestWaitDays} days`);
-  console.log(`  🆕 New Upstream Resets  : ${newItems.length} discovered`);
-  console.log(`  ⚙️  Execution Mode       : ${options.dryRun ? "DRY-RUN (Safe Read-Only)" : "WRITE-ENABLED"}`);
-  console.log("================================================================");
-
-  // 6. Handle write
-  if (options.dryRun) {
-    console.log("✅ [Dry Run] Health check completed successfully. No changes written.");
-  } else {
-    if (newItems.length > 0) {
-      await fs.writeFile(
-        DATA_FILE_PATH,
-        JSON.stringify(mergedResets, null, 2) + "\n",
-        "utf-8"
-      );
-      console.log(`🎉 [Updated] Successfully merged ${newItems.length} new reset(s) into fallback-resets.json!`);
-    } else {
-      console.log("✨ [Up to Date] Local dataset is already synchronized with upstream.");
+  const divergences = [];
+  for (const [id, up] of upstreamById) {
+    const local = localById.get(id);
+    if (!local) continue;
+    const localTime = new Date(local.announced_at).getTime();
+    const upTime = new Date(up.announced_at).getTime();
+    if (Number.isFinite(localTime) && Number.isFinite(upTime) && localTime !== upTime) {
+      divergences.push({ id, local: local.announced_at, upstream: up.announced_at });
     }
   }
+
+  const upstreamOnly = [...upstreamById.keys()].filter((id) => !localById.has(id));
+  const localOnly = [...localById.keys()].filter((id) => !upstreamById.has(id));
+
+  const intervals = collectIntervals(localResets);
+  const medianIntervalDays = Number(median(intervals).toFixed(1));
+  const longestWaitDays = intervals.length > 0 ? Number(Math.max(...intervals).toFixed(1)) : 0;
+  const latest = [...localResets].sort(
+    (a, b) => new Date(b.announced_at).getTime() - new Date(a.announced_at).getTime()
+  )[0];
+
+  const byProvenance = {};
+  for (const r of localResets) {
+    const k = r?.provenance ?? "(none)";
+    byProvenance[k] = (byProvenance[k] ?? 0) + 1;
+  }
+
+  // `localOnly` is expected, not a divergence: upstream paginates (it serves
+  // the newest page only, 20 records at time of writing) while we keep the
+  // full history. Flagging that as a divergence would train everyone to
+  // ignore the report. Only a timestamp conflict, or a record we are missing,
+  // is actionable.
+  const clean = divergences.length === 0 && upstreamOnly.length === 0;
+
+  if (!options.json) {
+    console.log("");
+    console.log("================================================================");
+    console.log("  WHENRESET RADAR // UPSTREAM CROSS-CHECK (read-only)");
+    console.log("================================================================");
+    console.log(`  Local records        : ${localResets.length}  ${JSON.stringify(byProvenance)}`);
+    console.log(`  Upstream records     : ${upstream.items.length}`);
+    console.log(`  Latest local record  : ${latest?.announced_at ?? "n/a"}`);
+    console.log(`  Median cadence       : ${medianIntervalDays}d  (same (0,90) window as the site)`);
+    console.log(`  Longest recorded gap : ${longestWaitDays}d`);
+    console.log("----------------------------------------------------------------");
+    console.log(`  Divergences (same id, different timestamp) : ${divergences.length}`);
+    for (const d of divergences.slice(0, 5)) {
+      console.log(`    • id=${d.id}  local=${d.local}  upstream=${d.upstream}`);
+    }
+    console.log(`  Upstream-only (await human confirmation)   : ${upstreamOnly.length}`);
+    for (const id of upstreamOnly.slice(0, 5)) console.log(`    • id=${id}`);
+    console.log(`  Local-only (expected: upstream serves its newest page only) : ${localOnly.length}`);
+    console.log("----------------------------------------------------------------");
+    console.log(clean ? "  ✅ IN SYNC" : "  ⚠️  DIVERGENCE — review above (nothing was written)");
+    console.log("================================================================");
+  }
+
+  console.log(
+    `::crosscheck::${JSON.stringify({
+      ok: true,
+      local: localResets.length,
+      upstream: upstream.items.length,
+      divergences: divergences.length,
+      upstreamOnly: upstreamOnly.length,
+      localOnly: localOnly.length,
+      medianIntervalDays,
+      longestWaitDays,
+      byProvenance,
+      clean,
+    })}`
+  );
+
+  process.exit(0);
 }
 
 main().catch((err) => {
-  console.error("💥 Fatal error during sync execution:", err);
+  console.error("💥 [CROSSCHECK] Fatal error:", err);
   process.exit(1);
 });

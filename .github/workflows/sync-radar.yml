@@ -1,21 +1,44 @@
-name: Sync Tibo Radar & Upstream Resets
+name: Radar Data Pipeline
+
+# One writer, one schedule.
+#
+# There used to be two workflows writing the same dataset on different
+# schedules (`*/5` here and `0 */4` in sync-upstream.yml), so the 4-hourly job
+# could clobber whatever the 5-minute job had just produced. That second
+# workflow is gone; this one is the single entry point.
+#
+# The pipeline is now split by intent:
+#   • check-data-health.mjs — read-only gate. Goes RED when the dataset is
+#     malformed, unattributed, stale, or when upstream is unreachable. This is
+#     the alarm that the old scripts lacked: they exited 0 on failure, so a
+#     dead pipeline looked exactly like a quiet one.
+#   • sync-upstream.mjs     — read-only cross-check. Reports divergences,
+#     never writes.
+#   • sync-tibo.mjs --probe — read-only. Reports records upstream knows that
+#     we do not, and exits 3 so this workflow can open a confirmation issue.
+#   • sync-tibo.mjs --add-tweet — the ONLY write path, and it only runs on a
+#     manual dispatch with human-supplied text. Upstream never writes.
 
 on:
   schedule:
-    # Run every 5 minutes for ultra-fast real-time tracking
+    # Every 5 minutes: fast enough to open a confirmation issue promptly.
     - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       tweet_text:
-        description: "Manually inject a Tibo tweet text"
+        description: "Confirmed announcement text (enables the ingest path)"
         required: false
         type: string
       tweet_url:
-        description: "Direct URL to Tibo's tweet"
+        description: "Direct URL to the announcement"
+        required: false
+        type: string
+      tweet_at:
+        description: "announced_at, ISO 8601 (defaults to now)"
         required: false
         type: string
       tweet_type:
-        description: "Reset type (regular or banked)"
+        description: "Reset type"
         required: false
         default: "regular"
         type: choice
@@ -25,10 +48,15 @@ on:
 
 permissions:
   contents: write
+  issues: write
+
+concurrency:
+  group: radar-data-pipeline
+  cancel-in-progress: false
 
 jobs:
-  sync-tibo:
-    name: Sync Tibo Signal & Codex Resets
+  pipeline:
+    name: Health gate, cross-check and probe
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -37,30 +65,83 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Run Tibo Radar Sync
+      - name: Data health gate (read-only, fails the run when unhealthy)
+        run: node scripts/check-data-health.mjs
+
+      - name: Cross-check upstream (read-only)
+        run: node scripts/sync-upstream.mjs
+
+      - name: Probe for records awaiting confirmation
+        id: probe
         run: |
-          if [ -n "${{ github.event.inputs.tweet_text }}" ]; then
-            node scripts/sync-tibo.mjs --add-tweet "${{ github.event.inputs.tweet_text }}" --url "${{ github.event.inputs.tweet_url }}" --type "${{ github.event.inputs.tweet_type }}"
-          else
-            node scripts/sync-tibo.mjs
+          set +e
+          node scripts/sync-tibo.mjs --probe > probe.log 2>&1
+          code=$?
+          set -e
+          cat probe.log
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          # 0 = nothing pending, 3 = pending confirmation: both healthy.
+          # Anything else (1 = fatal, upstream unreachable) must fail the run.
+          if [ "$code" != "0" ] && [ "$code" != "3" ]; then
+            echo "::error::Probe failed with exit code $code (upstream unreachable or dataset unreadable)"
+            exit 1
           fi
 
-      - name: Check for data changes
-        id: git-check
+      - name: Open confirmation issue
+        if: steps.probe.outputs.exit_code == '3'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -n "$(git status --porcelain src/data/fallback-resets.json src/data/fallback-scheduled.json)" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+          TITLE="[Needs confirmation] Upstream reports reset records missing locally"
+          OPEN=$(gh issue list --state open --search "$TITLE in:title" --json number --jq 'length')
+          if [ "$OPEN" != "0" ]; then
+            echo "A confirmation issue is already open ($OPEN). Not creating another."
+            exit 0
           fi
 
-      - name: Commit and push changes
-        if: steps.git-check.outputs.changed == 'true'
+          {
+            echo "The upstream API reports records this repository does not have yet."
+            echo
+            echo "**Nothing was written.** Upstream may suggest that something may have happened;"
+            echo "it may not decide that it did. Confirm a record, then ingest it deliberately."
+            echo
+            echo '```'
+            cat probe.log
+            echo '```'
+            echo
+            echo "## How to confirm"
+            echo "1. Open the announcement link for each record above."
+            echo "2. If it is real: run the **Radar Data Pipeline** workflow manually (Actions → Run workflow)"
+            echo "   with \`tweet_text\`, \`tweet_url\`, \`tweet_at\` and \`tweet_type\` filled in."
+            echo "3. If it is a false report: just close this issue."
+            echo
+            echo "## Why this is not automatic"
+            echo "Handing the write path to upstream means one unilateral edit on their side"
+            echo "enters git history and shifts every historical statistic derived from it,"
+            echo "with no clean way back. Delay is acceptable here; a wrong fact is not."
+          } > issue-body.md
+
+          gh issue create --title "$TITLE" --body-file issue-body.md
+
+      - name: Ingest human-confirmed record
+        if: github.event.inputs.tweet_text != ''
         run: |
+          node scripts/sync-tibo.mjs \
+            --add-tweet "${{ github.event.inputs.tweet_text }}" \
+            --url "${{ github.event.inputs.tweet_url }}" \
+            --at "${{ github.event.inputs.tweet_at }}" \
+            --type "${{ github.event.inputs.tweet_type }}"
+
+      - name: Commit confirmed data changes
+        run: |
+          if [ -z "$(git status --porcelain src/data/)" ]; then
+            echo "No dataset changes to commit."
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/data/fallback-resets.json src/data/fallback-scheduled.json
-          git commit -m "chore(data): auto sync Tibo signals & upstream resets [skip ci]"
+          git add src/data/
+          git commit -m "chore(data): ingest human-confirmed reset record [skip ci]"
           git push
