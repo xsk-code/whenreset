@@ -1,7 +1,9 @@
-# 8-Bit 复古像素风格 (Retro Arcade) Codex 额度重置追踪站 (WhenReset.top) 完整落地方案
+# ⚠️ [已归档历史文档] 8-Bit 复古像素风格 Codex 额度重置追踪站落地方案
 
-> **项目代号**：WhenReset: 8-Bit Retro Edition  
-> **核心使命**：1:1 完整复刻 `codex-resets.com` 的全部玩法与数据生态，全面重塑为**8-Bit 复古红白机 / 经典像素街机（Retro Pixel Arcade）**趣味极客风格，严格遵循去版权风险合规标准，以极致低成本完成开发、部署与推特破圈运营。
+> **状态**：**已归档 (Archived)**。  
+> **说明**：本项目早期为 8-Bit 复古马里奥版本，现已全库重构为 **v2 Modern Frosted-Glass Telemetry Dashboard (现代暗黑磨砂玻璃遥测站)**。  
+> **最新工程规范**：请查阅 [`AGENTS.md`](./AGENTS.md) 与 [`README.md`](./README.md)。  
+> **最新设计体系**：深空暗黑背景 `#080B11` + 磨砂面板 `.glass-panel` + 翡翠绿脉冲 `#10B981` + `Inter` / `JetBrains Mono` 字体。
 
 ---
 

@@ -6,30 +6,28 @@
 
 ## 一、 项目愿景与技术栈
 
-- **定位**：1:1 像素级复刻 OpenAI Codex 额度重置追踪站，全面重塑为**超级马里奥（8-bit Retro Pixel）**趣味极客风格。
+- **定位**：OpenAI Codex、Claude 等主流 AI 编码工具速率与配额重置实时预测追踪雷达（Live AI Quota Reset Radar），面向全球开发者的高可用极客遥测看板。
 - **技术栈**：
   - Next.js 15 (App Router) + React 19 + TypeScript
-  - Tailwind CSS + Lucide Icons + `Press Start 2P` 像素字体
-  - 零服务器部署：Vercel Edge 缓存 + 本地静态 JSON 双重容灾
+  - Tailwind CSS + Lucide Icons + `Inter` 无衬线与 `JetBrains Mono` 等宽字体
+  - 零服务器单点故障：Vercel Edge 缓存 + 本地静态 JSON 双重容灾
 
 ---
 
-## 二、 像素设计规范 (Pixel Aesthetics)
+## 二、 现代化设计规范 (Frosted-Glass & Telemetry Aesthetics)
 
-1. **绝对拒绝现代平滑圆角**：
-   - 必须使用坚硬像素直角：`rounded-none`。
-   - 核心边框：`border-[3px] border-black` 或 `border-2 border-black`。
-   - 核心阴影：`shadow-[4px_4px_0px_#000]` 或 `shadow-[2px_2px_0px_#000]`。
-2. **调色盘标准**：
-   - 地下关卡（Dark）：背景 `#0F111A`
-   - 平原关卡（Light）：背景 `#5C94FC` 到 `#F5F7FF`
-   - 问号金币黄：`#FBD000`
-   - 马里奥红：`#E52521`
-   - 水管幽灵绿：`#00A800`
-   - 砖块棕：`#B84418`
-3. **字体配比**：
-   - 标题、倒计时、数值、按钮：`font-pixel` (`Press Start 2P`)
-   - 长篇推文、说明文本：系统等宽或无衬线字体（确保阅读舒适度，避免纯像素密集排版导致眩晕）
+1. **暗黑深空与磨砂玻璃质感 (Glassmorphism)**：
+   - 全站基底：深空暗黑背景 `#080B11`，配合微弱点阵背景（`.bg-grid-pattern`）。
+   - 核心面板：采用 `.glass-panel`（`backdrop-filter: blur(16px)`，`border: 1px solid rgba(255, 255, 255, 0.08)`）。
+   - 微圆角体系：根据组件层级规范采用 `rounded-lg` (8px)、`rounded-xl` (12px) 或 `rounded-2xl` (16px)，提供细腻触感。
+2. **状态色彩与脉冲指示灯 (Telemetry Color Palette)**：
+   - 核心活跃 / 实时监控：翡翠绿 `#10B981`（`animate-pulse` 发光脉冲）
+   - 告警与临界态：琥珀黄 `#F59E0B`
+   - 动态信号与链接：科技蓝 `#3B82F6`
+   - 次级文本与边框：`#94A3B8` (slate-400) / `rgba(255, 255, 255, 0.08)`
+3. **字体排版平衡**：
+   - 界面常规标签、说明文本、正文：系统现代无衬线 `Inter`
+   - 倒计时、概率数值、时间戳、终端代码：高可读性等宽字体 `JetBrains Mono` / `monospace`，保证数据列对齐与技术硬核质感。
 
 ---
 

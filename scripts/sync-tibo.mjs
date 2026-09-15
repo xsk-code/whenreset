@@ -8,7 +8,7 @@
  * Features:
  * 1. Automatic Upstream Sync: Fetches latest resets & status from upstream, deduplicating with local fallback-resets.json.
  * 2. Instant Manual Tweet Ingestion: Allows quick injection of a newly discovered Tibo tweet via CLI flags.
- * 3. 8-Bit NES ASCII Terminal Report: Displays full status report.
+ * 3. Telemetry Terminal Report: Displays full status report.
  */
 
 import { promises as fs } from "node:fs";

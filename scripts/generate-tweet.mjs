@@ -3,9 +3,9 @@
 /**
  * scripts/generate-tweet.mjs
  * 
- * 8-Bit Mario Style Twitter / X Copy Generator for WhenReset.
+ * Developer Telemetry Twitter / X Copy Generator for WhenReset.
  * Calculates real-time reset probability or accepts CLI arguments,
- * generating viral retro geek tweet drafts strictly within the 280-char limit.
+ * generating viral geek tweet drafts strictly within the 280-char limit.
  */
 
 import { promises as fs } from "node:fs";
@@ -137,13 +137,13 @@ function generateDrafts({ prob, days, avg, type }) {
     `🪙 Cadence: ~${avg}d average`,
     statusNote,
     "",
-    "🎮 8-Bit Live Radar: https://whenreset.top",
+    "⚡ Live Radar: https://whenreset.top",
     "#OpenAI #Codex #WhenReset #ChatGPT",
   ].join("\n");
 
   // 2. Punchy Fast-Paced Style (<= 280 chars)
   const punchy = [
-    `🍄 WHEN RESET? RADAR: ${prob}% CHANCE`,
+    `⚡ WHEN RESET? RADAR: ${prob}% CHANCE`,
     "",
     `It's been ${days} days since @thsottiaux pressed reset.`,
     `Historical average is ${avg} days.`,
@@ -157,13 +157,13 @@ function generateDrafts({ prob, days, avg, type }) {
   // 3. Geek Telemetry Style (<= 280 chars)
   const meter = "█".repeat(Math.min(10, Math.floor(prob / 10))) + "░".repeat(Math.max(0, 10 - Math.floor(prob / 10)));
   const dramatic = [
-    `🎮 [CODEX WATCH] 8-BIT TELEMETRY`,
+    `⚡ [CODEX WATCH] LIVE TELEMETRY`,
     `Probability: [${meter}] ${prob}%`,
     `Elapsed: ${days}d / Cadence: ${avg}d`,
     `Last Mode: ${type.toUpperCase()}`,
     "",
     "Ready your prompt pipelines:",
-    "🍄 https://whenreset.top",
+    "⚡ https://whenreset.top",
     "",
     "#OpenAI #Codex #WhenReset #AI",
   ].join("\n");
@@ -202,7 +202,7 @@ Options:
   });
 
   console.log("================================================================");
-  console.log("  🍄 WHENRESET // 8-BIT MARIO TWEET GENERATOR 🍄");
+  console.log("  ⚡ WHENRESET // AI TELEMETRY TWEET GENERATOR ⚡");
   console.log("================================================================");
   console.log(`  State: Probability = ${prob}% | Days Elapsed = ${days}d | Cadence = ${avg}d`);
   console.log("================================================================\n");

@@ -5,7 +5,7 @@
  * 
  * Lightweight ESM data synchronization script for WhenReset.
  * Fetches latest resets from public upstream, merges incrementally with deduplication,
- * and outputs an 8-bit Mario style data health check report.
+ * and outputs a telemetry data health check report.
  */
 
 import { promises as fs } from "node:fs";
@@ -188,10 +188,10 @@ Options:
   // 4. Compute statistics
   const stats = computeHealthStats(mergedResets);
 
-  // 5. Print 8-bit Mario Data Health Check Report
+  // 5. Print Telemetry Data Health Check Report
   console.log("");
   console.log("================================================================");
-  console.log("  🍄 WHENRESET RADAR // DATA HEALTH CHECK REPORT 🍄");
+  console.log("  ⚡ WHENRESET RADAR // DATA HEALTH CHECK REPORT ⚡");
   console.log("================================================================");
   console.log(`  📊 Total Resets Tracked : ${stats.total}`);
   if (stats.latest) {

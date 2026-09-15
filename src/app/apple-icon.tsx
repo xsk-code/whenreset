@@ -17,7 +17,7 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0F111A",
+          backgroundColor: "#080B11",
           boxSizing: "border-box",
           padding: 16,
         }}
@@ -29,114 +29,44 @@ export default function AppleIcon() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#FBD000",
-            border: "6px solid #000000",
+            backgroundColor: "#0F1420",
+            borderRadius: 32,
+            border: "2.5px solid #10B981",
             boxSizing: "border-box",
             position: "relative",
-            boxShadow: "6px 6px 0px #000000",
+            boxShadow: "0 0 25px rgba(16, 185, 129, 0.25)",
           }}
         >
-          {/* Highlight Top/Left */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 10,
-              backgroundColor: "#FFF587",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              bottom: 0,
-              width: 10,
-              backgroundColor: "#FFF587",
-            }}
-          />
-
-          {/* Shadow Bottom/Right */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 10,
-              backgroundColor: "#B84418",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              bottom: 0,
-              width: 10,
-              backgroundColor: "#B84418",
-            }}
-          />
-
-          {/* 4 Corner Rivets */}
-          <div
-            style={{
-              position: "absolute",
-              top: 14,
-              left: 14,
-              width: 12,
-              height: 12,
-              backgroundColor: "#000000",
-            }}
-          />
+          {/* Top-right telemetry pulse beacon */}
           <div
             style={{
               position: "absolute",
               top: 14,
               right: 14,
-              width: 12,
-              height: 12,
-              backgroundColor: "#000000",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              bottom: 14,
-              left: 14,
-              width: 12,
-              height: 12,
-              backgroundColor: "#000000",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              bottom: 14,
-              right: 14,
-              width: 12,
-              height: 12,
-              backgroundColor: "#000000",
+              width: 14,
+              height: 14,
+              borderRadius: "50%",
+              backgroundColor: "#10B981",
+              border: "2px solid #A7F3D0",
             }}
           />
 
-          {/* Center Pixel Question Mark */}
+          {/* Center Terminal prompt */}
           <div
             style={{
-              fontSize: 100,
+              fontSize: 72,
               fontWeight: 900,
-              color: "#000000",
+              color: "#10B981",
               lineHeight: 1,
-              textShadow: "4px 4px 0px #B84418",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontFamily: "monospace",
+              letterSpacing: -4,
+              marginLeft: -4,
             }}
           >
-            ?
+            {">_"}
           </div>
         </div>
       </div>

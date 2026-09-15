@@ -1,7 +1,7 @@
 # WhenReset 出海独立站运维与增长实战手册 (Operations Playbook)
 
-> **版本**：v1.0  
-> **指导思想**：结合「生财有术」精选库出海操盘手实战沉淀（子木《AI 工具站 SEO 从 0 到 1 小册子》、大林子《日活 1200+ 出海做站复盘》、秀才《AI 出海工具站踩坑实录》），专为 **WhenReset (8-Bit Codex 额度雷达站)** 量身定制的极简落地指南。
+> **版本**：v2.0  
+> **指导思想**：结合「生财有术」精选库出海操盘手实战沉淀（子木《AI 工具站 SEO 从 0 到 1 小册子》、大林子《日活 1200+ 出海做站复盘》、秀才《AI 出海工具站踩坑实录》），专为 **WhenReset (AI Quota Reset Radar)** 量身定制的极简落地指南。
 
 ---
 
@@ -30,38 +30,25 @@
 
 ## 二、 Google Search Console (GSC) 索引与验证指南
 
-子木指出：“新站上线的第一天，必须向 Google 证明你是真实可信且结构完整的页面。”
-
-### 1. 验证网站所有权
-1. 访问 [Google Search Console](https://search.google.com/search-console)。
-2. 选择 **网域 (Domain)** 方式验证，输入 `whenreset.top`。
-3. 复制 Google 提供的 `TXT 记录值`（例如 `google-site-verification=xxxx`）。
-4. 前往 DNS 服务商（如 Cloudflare / 腾讯云），在 `whenreset.top` 下新增一条 `TXT` 记录，主机记录填 `@`，内容填该字符串。
-5. 返回 GSC 点击 **验证 (Verify)** 即可秒级通过。
-
-### 2. 提交站点地图 (Sitemap)
-- 在 GSC 左侧点击 **Sitemaps (站点地图)**。
-- 在“添加新的站点地图”输入框填入：`https://whenreset.top/sitemap.xml`，点击提交。
-- 确认状态显示为 **“成功” (Success)**。
-
-### 3. URL 检查与首批收录促推
-- 在 GSC 顶部搜索框输入 `https://whenreset.top`，点击“请求编入索引” (Request Indexing)。
+1. 登录 [Google Search Console](https://search.google.com/search-console)。
+2. 选择 **网址前缀 (URL Prefix)**，输入 `https://whenreset.top`。
+3. 验证方式选择 **HTML 标记 (HTML Tag)**。
+4. 本项目已在 `src/app/layout.tsx` 中预先注入 Verification Code：
+   ```html
+   <meta name="google-site-verification" content="slY1HVnTseRcBnZ7E3RnMods60NuQxmnNO2Jn70DywA" />
+   ```
+5. 点击验证即可通过。随后提交 Sitemap：`https://whenreset.top/sitemap.xml`。
 
 ---
 
 ## 三、 生财出海工具站 Top 20 目录站 / 外链提交通道
 
-子木在《AI 工具站 SEO 小册子》中反复强调：**“新站没权重时，不要硬等谷歌爬虫慢慢发现，去提交头部目录站就是给爬虫‘修路’，也是新站破局最快的方式。”**
-
-### 1. 核心 AI 与开发者生态目录 (高优先级，必交)
-
-| 目录/平台 | 网址 | 特点与权重 | 推荐提交分类 |
-| :--- | :--- | :--- | :--- |
-| **Cursor Directory** | `cursor.directory` | 官方生态，万级 AI 开发者 | Developer Tools / MCP |
-| **Smithery.ai** | `smithery.ai` | 全球最大的 MCP Server 注册中心 | Utilities / Productivity |
-| **PulseMCP** | `pulsemcp.com` | MCP 索引站 | Developer Infrastructure |
-| **There's An AI For That** | `theresanaiforthat.com` | DA 70+ 全球最大 AI 工具目录 | Coding Assistants / Monitors |
-| **Toolify.ai** | `toolify.ai` | 月活数百万，出海站首选 | AI Developer Tools |
+### 1. 核心高权重工具目录站名单
+| 目录站名称 | 官网地址 | 权重与特点 | 推荐分类 |
+|---|---|---|---|
+| **Product Hunt** | `producthunt.com` | 全球最大的新科技发布平台 | Developer Tools / AI |
+| **Theres An AI For That** | `theresanaiforthat.com` | 全球最大 AI 工具聚合目录 | Developer Tools |
+| **Toolify.ai** | `toolify.ai` | 出海头部 AI 导航，流量巨大 | Coding / AI Assistant |
 | **Futurepedia** | `futurepedia.io` | 老牌权威 AI 工具库 | Coding / Productivity |
 | **AI Top Tools** | `aitoptools.com` | 审核较快，Dofollow 外链 | Development |
 | **Dang.ai** | `dang.ai` | 界面极客，收录快 | Developer Tools |
@@ -70,13 +57,13 @@
 
 ```text
 [Name / Title]:
-WhenReset: 8-Bit Retro Radar for OpenAI Codex Resets & Free MCP Server
+WhenReset — Live AI Quota Reset Radar for OpenAI Codex & Claude
 
 [Tagline]:
-Retro arcade quota drop radar & MCP server for Cursor, Claude Code, and Windsurf agents.
+Real-time AI quota reset tracking radar & forecast countdown for developers.
 
 [Short Description]:
-WhenReset is an 8-bit NES retro arcade tracker predicting OpenAI Codex quota refills. Features live countdown, 26-week pixel heatmap, community prediction bets, and a zero-config Model Context Protocol (MCP) server for Cursor and Claude Code.
+WhenReset is a real-time developer telemetry radar predicting OpenAI Codex and Claude quota resets. Features statistical probability forecasting, 26-week historical heatmap, dynamic RFC 5545 iCalendar sync, and multi-channel developer alert pipelines.
 
 [Website URL]:
 https://whenreset.top
@@ -85,7 +72,7 @@ https://whenreset.top
 https://whenreset.top/api/mcp
 
 [Tags / Keywords]:
-OpenAI Codex, Rate Limits, Reset Radar, Model Context Protocol, MCP, Cursor AI, Claude Code, Retro Gaming, Developer Tools
+OpenAI Codex, Rate Limits, Reset Radar, Model Context Protocol, MCP, Cursor AI, Claude Code, Developer Telemetry, Developer Tools
 ```
 
 ---

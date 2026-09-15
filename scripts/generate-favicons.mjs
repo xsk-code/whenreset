@@ -19,7 +19,7 @@ async function generate() {
 
   for (const size of sizes) {
     pngBuffers[size] = await sharp(svgBuffer)
-      .resize(size, size, { kernel: sharp.kernel.nearest })
+      .resize(size, size, { kernel: sharp.kernel.lanczos3 })
       .png()
       .toBuffer();
   }
@@ -67,13 +67,13 @@ async function generate() {
 
   // 5. Generate site.webmanifest
   const manifest = {
-    name: "WhenReset: 8-Bit Retro Edition",
+    name: "WhenReset — AI Quota Reset Radar",
     short_name: "WhenReset",
-    description: "OpenAI Codex Quota Reset Radar in Retro 8-Bit Pixel Style",
+    description: "Real-time OpenAI Codex and Claude usage limit reset tracking, forecast countdowns, and developer alerts.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0F111A",
-    theme_color: "#0F111A",
+    background_color: "#080B11",
+    theme_color: "#080B11",
     icons: [
       {
         src: "/icon.svg",
