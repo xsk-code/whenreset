@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fallbackResets from "@/data/fallback-resets.json";
 import { ResetItem, ResetsResponse } from "@/lib/types";
+import { UPSTREAM_RESETS_URL, reconcileResets } from "@/lib/radar-snapshot";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ export async function GET(request: Request) {
   const cursor = searchParams.get("cursor");
 
   try {
-    const upstreamUrl = new URL("https://codex-resets.com/api/v1/resets");
+    const upstreamUrl = new URL(UPSTREAM_RESETS_URL);
     if (cursor) {
       upstreamUrl.searchParams.set("cursor", cursor);
     }
@@ -31,17 +32,13 @@ export async function GET(request: Request) {
       const data: ResetsResponse = await upstreamRes.json();
       const upstreamItems = Array.isArray(data?.data) ? data.data : [];
       const localItems = fallbackResets as ResetItem[];
-      const upstreamIds = new Set(upstreamItems.map((item) => String(item.id)));
-      
-      // Keep any local records that upstream might have missed or delayed
-      const merged = [...upstreamItems];
-      for (const item of localItems) {
-        if (!upstreamIds.has(String(item.id))) {
-          merged.push(item);
-        }
-      }
-      merged.sort((a, b) => new Date(b.announced_at).getTime() - new Date(a.announced_at).getTime());
-      data.data = merged;
+
+      // Same arbitration as /api/status and /api/badge: dedupe by id, and when
+      // both sources hold the same record let the later `announced_at` win.
+      // The previous implementation only deduped — an upstream copy always
+      // displaced the local one — so this endpoint and /api/status could
+      // disagree about which revision of a record was the current one.
+      data.data = reconcileResets(localItems, upstreamItems).resets;
 
       return NextResponse.json(data, {
         status: 200,

@@ -110,8 +110,14 @@ export function computeForecast(params: {
 
   const intervals = collectIntervals(resets ?? []);
   const sampleSize = intervals.length;
+  // With no measurable intervals, fall back to the median reported by
+  // /api/status — never to `avg_interval_days`, which is an arithmetic mean
+  // over a different interval window and would silently change the model's
+  // cadence basis (6.9d vs the 3.0d median) whenever the dataset was thin.
   const medianIntervalDays =
-    sampleSize > 0 ? median(intervals) : stats?.avg_interval_days || DEFAULT_MEDIAN_DAYS;
+    sampleSize > 0
+      ? median(intervals)
+      : stats?.median_interval_days || DEFAULT_MEDIAN_DAYS;
 
   const lastResetAt =
     stats?.last_reset_at ??

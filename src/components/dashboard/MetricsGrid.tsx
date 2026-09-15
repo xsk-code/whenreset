@@ -21,7 +21,10 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
   const isZh = lang === "zh";
 
   const daysSince = forecast.daysSinceLast;
-  const longestWait = stats?.longest_wait_days ?? 67.7;
+  // No hardcoded placeholder: with no dataset loaded yet, report nothing
+  // rather than the old fabricated 67.7-day drought.
+  const longestWait = stats?.longest_wait_days ?? 0;
+  const droughtLabel = longestWait > 0 ? `${longestWait}` : "—";
   const total = resets.length;
 
   // Real counting over the dataset, never hardcoded
@@ -96,8 +99,8 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
         </div>
         <div className="text-xs text-slate-400 mt-2">
           {isZh
-            ? `基于 ${forecast.sampleSize} 段间隔 • 最长干旱 ${longestWait} 天`
-            : `${forecast.sampleSize} intervals • longest drought ${longestWait}d`}
+            ? `基于 ${forecast.sampleSize} 段间隔 • 最长干旱 ${droughtLabel} 天`
+            : `${forecast.sampleSize} intervals • longest drought ${droughtLabel}d`}
         </div>
       </div>
 

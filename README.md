@@ -4,6 +4,9 @@
 > 
 > 针对全球高强度使用 AI 编程工具（OpenAI Codex, Claude Code, Grok）的开发者，提供毫秒级配额重置倒计时、统计学概率预测雷达、26 周重置全景热力图、RFC 5545 日历同步与多渠道（Bark / Webhook / 邮件）开发者强提醒服务。
 
+[![reset radar](https://whenreset.top/api/badge?metric=likelihood)](https://whenreset.top)
+[![since last reset](https://whenreset.top/api/badge?metric=elapsed&theme=light)](https://whenreset.top)
+
 [![Next.js 15](https://img.shields.io/badge/Next.js-15.2.0-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.0.0-blue?style=flat-square&logo=react)](https://react.dev/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4.17-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
@@ -185,16 +188,60 @@ npm run build
 | `NEXT_PUBLIC_SITE_URL` | 站点域名，统一驱动 canonical / sitemap / ICS / 二维码 | 回退到 `https://whenreset.top` |
 | `CRON_SECRET` | 保护 `/api/cron/dispatch` 的 Bearer token | 不配置则该端点不校验身份（不推荐） |
 | `ADMIN_BARK_KEY` | 每日摘要推送的 Bark 目标 | 跳过 Bark 投递 |
-| `ADMIN_WEBHOOK_URL` | 每日摘要推送的群机器人 Webhook | 跳过 Webhook 投递 |
+| `ADMIN_WEBHOOK_URL` | 每日摘要推送的群机器人 Webhook（企微 / 飞书 / Discord / Slack，按目标主机自动选择载荷格式） | 跳过 Webhook 投递 |
+| `FEISHU_WEBHOOK_SECRET` | 飞书机器人签名校验密钥。命中飞书目标时用于签发 `timestamp` / `sign`；Actions 侧通知同样使用 | 不签名，仅适用于**未开启**签名校验的机器人 |
+| `GITHUB_DISPATCH_TOKEN` | 细粒度 PAT，仅需本仓库的 `Actions: write`。供 `/api/confirm` 触发入库 workflow | `/api/confirm` 返回 `configured:false`，页面如实提示 |
+| `CONFIRM_SECRET` | 免登录确认链接的 HMAC 签名密钥 | `/api/confirm` 返回 `configured:false`，页面如实提示 |
+| `GITHUB_DISPATCH_REF` | 触发入库 workflow 的目标分支 | 回退 `main` |
 | `RESEND_API_KEY` | 邮件订阅通道密钥 | `/api/subscribe` 返回 `configured:false`，UI 如实提示 |
 | `RESEND_AUDIENCE_ID` | 可选，Resend 读者列表 ID | 不带 audience 直接建联系人 |
+
+**GitHub Actions Secrets（仓库 Settings → Secrets and variables → Actions）**
+
+飞书通知有两条通道，**配置其中一条即可**：
+
+| Secret | 通道 | 作用 | 未配置时的行为 |
+|---|---|---|---|
+| `FEISHU_APP_ID` | 自建应用 | 开放平台应用的 App ID（`cli_…`） | 该通道不启用 |
+| `FEISHU_APP_SECRET` | 自建应用 | 应用的 App Secret | 该通道不启用 |
+| `FEISHU_RECEIVE_ID` | 自建应用 | 接收方 ID：`ou_…` 为 open_id，`oc_…` 为 chat_id | 该通道不启用 |
+| `FEISHU_RECEIVE_ID_TYPE` | 自建应用 | `open_id` 或 `chat_id`，必须与上面填的 ID 类型一致 | 该通道不启用 |
+| `FEISHU_WEBHOOK_URL` | 群机器人 | 飞书群自定义机器人地址 | 该通道不启用，GitHub Issue 照常开 |
+| `FEISHU_WEBHOOK_SECRET` | 群机器人 | 机器人签名校验密钥 | 不签名（仅适用于未开启签名校验的机器人） |
+| `CONFIRM_SECRET` | 两通道共用 | 签发确认链接（**必须与 Vercel 的同名变量完全一致**） | 通知步骤报错退出，因为无法生成可点击的确认链接 |
+
+> 两条通道的取舍：**群机器人只能发到它被添加的那个群，自建应用能直接发给某个人。** 需要确认的人只有一个时用自建应用；要广播给一个团队群时用群机器人。
+>
+> 应用通道的 4 个变量必须**同时配置或同时留空**。只配一半时脚本会报错退出，而不是静默回退到 Webhook —— 否则一个从未生效过的配置会看起来是正常的。
+>
+> 注意：`CONFIRM_SECRET` 必须同时存在于 **Actions Secrets 与 Vercel 环境变量**，且值相同 —— 前者用它签发链接，后者用它校验链接。两者不一致时所有确认链接都会以 `bad_signature` 被拒。
+> 另外，`CONFIRM_SECRET` 与 `FEISHU_WEBHOOK_SECRET` 是两套独立密钥，**不要复用同一个值**。
+
+可选仓库 Variable：`SITE_URL`（默认 `https://whenreset.top`），用于拼接通知里的确认链接。
 
 ### 推送链路说明
 
 - 面向个人的告警在**浏览器端守护进程**里触发（`src/lib/useAlertGuardian.ts`）：命中概率阈值或出现新的官方公告时，
   调用 `/api/push` 由服务端代理发出，避免 Webhook 的 CORS 限制。
-- `/api/push` 带目标主机白名单（Bark / 企业微信 / 飞书 / Discord / Slack），非白名单目标直接 403，防止沦为开放 SSRF 中继。
+- `src/lib/notify-payload.ts` 是所有服务端群机器人通知的**载荷单一实现**（`/api/push` 与 `/api/cron/dispatch` 共用），按目标主机自动区分企微 / 飞书 / Discord / Slack 格式；非白名单目标直接 403，防止沦为开放 SSRF 中继。
 - 每日摘要由 Vercel Cron 触发（见 `vercel.json`，每天 09:00 UTC）。
+- **自建应用通道只服务于「待确认记录」通知**（Actions 侧的 `scripts/notify-feishu.mjs`）。每日摘要与用户订阅仍走 Webhook 目标地址 —— 服务端无法为任意目标持有应用凭据，所以填了 `FEISHU_APP_*` 并不代表每日摘要也会改用应用投递。
+
+### 数据入账与一键确认链路
+
+数据集的写入权限**只属于人**：上游竞品 API 只做探测与交叉校验，永不写入。完整链路：
+
+1. Actions 每 5 分钟运行 `sync-tibo.mjs --probe`（只读）。发现本地缺失的记录时退出码 3；
+2. 工作流开一条 GitHub Issue（审计留痕 + 兜底），并把待确认记录推送到飞书（自建应用私聊或群机器人）；
+3. 飞书消息里每条记录带一个签名链接 `https://<站点>/confirm?t=<token>`；
+4. 打开链接 → 页面核对记录 → 点「确认入账」→ `POST /api/confirm` → 经 GitHub API 触发入库 workflow；
+5. 入库由 `sync-tibo.mjs --add-tweet` 执行，写入时标记 `provenance: manual`。
+
+三条硬约束，改动时不要绕过：
+
+- **GET 永不写入**。`/confirm` 是纯服务端渲染页面 + 原生表单 POST，没有客户端 JS；聊天软件与安全扫描器普遍会预取链接，若 GET 即写入，每条推送都会被自动确认掉。
+- **确认接口不接受自由输入**。记录本体编码在签名 token 内，`POST /api/confirm` 只回放 token 里的内容，链接外泄的最坏后果仅是"注入一条上游已报告过的记录"。
+- **通知不经过本站**。飞书投递由 Actions 直接发起 —— 站点故障时仍要能把人叫醒。
 
 ### 预测模型
 

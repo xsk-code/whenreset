@@ -1,17 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  NOTIFY_ALLOWED_HOSTS,
+  hostOf,
+  payloadFor,
+} from "@/lib/notify-payload";
 
 export const runtime = "edge";
-
-const ALLOWED_HOSTS = [
-  "api.day.app",
-  "qyapi.weixin.qq.com",
-  "open.feishu.cn",
-  "open.larksuite.com",
-  "discord.com",
-  "discordapp.com",
-  "hooks.slack.com",
-  "api.day.app:443",
-];
 
 interface PushBody {
   channel?: string;
@@ -20,28 +14,6 @@ interface PushBody {
   title?: string;
   body?: string;
   url?: string;
-}
-
-function hostOf(raw: string): string | null {
-  try {
-    return new URL(raw).hostname;
-  } catch {
-    return null;
-  }
-}
-
-function payloadFor(host: string, title: string, body: string, url?: string) {
-  const full = url ? `${body}\n${url}` : body;
-  if (host.startsWith("qyapi.weixin.qq.com")) {
-    return { msgtype: "text", text: { content: `${title}\n${full}` } };
-  }
-  if (host.startsWith("open.feishu.cn") || host.startsWith("open.larksuite.com")) {
-    return { msg_type: "text", content: { text: `${title}\n${full}` } };
-  }
-  if (host.includes("discord") || host.includes("slack")) {
-    return { content: `${title}\n${full}` };
-  }
-  return { text: `${title}\n${full}`, content: `${title}\n${full}` };
 }
 
 export async function POST(request: Request) {
@@ -77,7 +49,11 @@ export async function POST(request: Request) {
     if (channel === "webhook") {
       const host = hostOf(target);
       if (!host) return NextResponse.json({ error: "invalid webhook url" }, { status: 400 });
-      if (!ALLOWED_HOSTS.some((allowed) => host === allowed || host.endsWith(`.${allowed}`))) {
+      if (
+        !NOTIFY_ALLOWED_HOSTS.some(
+          (allowed) => host === allowed || host.endsWith(`.${allowed}`)
+        )
+      ) {
         return NextResponse.json(
           { error: "destination host not allowed" },
           { status: 403 }
