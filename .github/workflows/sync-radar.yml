@@ -9,9 +9,19 @@ name: Radar Data Pipeline
 #
 # The pipeline is now split by intent:
 #   • check-data-health.mjs — read-only gate. Goes RED when the dataset is
-#     malformed, unattributed, stale, or when upstream is unreachable. This is
-#     the alarm that the old scripts lacked: they exited 0 on failure, so a
-#     dead pipeline looked exactly like a quiet one.
+#     malformed, unattributed, stale, or when upstream fails for a reason we
+#     can act on. This is the alarm that the old scripts lacked: they exited 0
+#     on failure, so a dead pipeline looked exactly like a quiet one.
+#
+#     One exception, learned the hard way on 2026-09-15: upstream sits behind
+#     Cloudflare, which answers datacenter egress with a JS challenge
+#     (HTTP 403 + `cf-mitigated: challenge`). GitHub Actions and Vercel are
+#     both challenged, regardless of User-Agent. That is an environment
+#     condition CI cannot fix, so it is reported as a WARNING and exit code 4
+#     rather than a red build every five minutes — otherwise every later step
+#     here (cross-check, probe, notify) would be skipped and the pipeline would
+#     fail to detect anything at all. Live probing needs a non-datacenter
+#     egress; a local scheduler is not challenged.
 #   • sync-upstream.mjs     — read-only cross-check. Reports divergences,
 #     never writes.
 #   • sync-tibo.mjs --probe — read-only. Reports records upstream knows that
@@ -107,10 +117,35 @@ jobs:
         run: node scripts/notify-feishu.mjs --self-test
 
       - name: Data health gate (read-only, fails the run when unhealthy)
-        run: node scripts/check-data-health.mjs
+        id: health
+        run: |
+          set +e
+          node scripts/check-data-health.mjs
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          # 0 = healthy. 4 = upstream answered with a Cloudflare edge challenge:
+          # the dataset passed every check, CI just cannot see the API. Anything
+          # else is a real problem.
+          if [ "$code" = "4" ]; then
+            echo "::warning::Upstream is blocked by a Cloudflare edge challenge from CI (exit 4). Dataset is healthy; live probing needs a non-datacenter egress."
+            exit 0
+          fi
+          exit "$code"
 
       - name: Cross-check upstream (read-only)
-        run: node scripts/sync-upstream.mjs
+        id: crosscheck
+        run: |
+          set +e
+          node scripts/sync-upstream.mjs
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          if [ "$code" = "4" ]; then
+            echo "::warning::Cross-check skipped: upstream blocked by a Cloudflare edge challenge (exit 4)."
+            exit 0
+          fi
+          exit "$code"
 
       - name: Probe for records awaiting confirmation
         id: probe
@@ -125,10 +160,15 @@ jobs:
           cat probe.log
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           # 0 = nothing pending, 3 = pending confirmation: both healthy.
+          # 4 = upstream blocked by a Cloudflare edge challenge: not detectable
+          # from CI, but also not a failure.
           # Anything else (1 = fatal, upstream unreachable) must fail the run.
-          if [ "$code" != "0" ] && [ "$code" != "3" ]; then
+          if [ "$code" != "0" ] && [ "$code" != "3" ] && [ "$code" != "4" ]; then
             echo "::error::Probe failed with exit code $code (upstream unreachable or dataset unreadable)"
             exit 1
+          fi
+          if [ "$code" = "4" ]; then
+            echo "::warning::Probe degraded: upstream blocked by a Cloudflare edge challenge (exit 4). No claim is made about pending records."
           fi
 
       - name: Raise, refresh or close the confirmation issue

@@ -25,19 +25,20 @@
  * arithmetic mean, which is where the "6.9 day average cadence" in the
  * marketing material came from while the site itself displayed ~3.0d.
  *
- * Exit codes: 0 clean / 1 fatal (upstream unreachable, dataset unreadable)
+ * Exit codes: 0 clean / 1 fatal (dataset unreadable, upstream failing for a
+ * reason we can act on) / 4 upstream blocked by a Cloudflare edge challenge —
+ * the cross-check simply could not run, which is not the same as "no changes".
  */
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { BLOCKED_EXPLANATION, DEFAULT_UPSTREAM_URL, fetchUpstreamResets } from "./lib/upstream.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE_PATH = path.resolve(__dirname, "../src/data/fallback-resets.json");
 
-const DEFAULT_UPSTREAM_URL =
-  process.env.UPSTREAM_RESETS_URL || "https://codex-resets.com/api/v1/resets";
 const TIMEOUT_MS = 6000;
 const MAX_RETRIES = 2;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -68,31 +69,16 @@ function parseArgs() {
 }
 
 /**
- * @returns {Promise<{ok: true, items: unknown[]} | {ok: false, error: string}>}
+ * @returns {Promise<{ok: true, items: unknown[]} | {ok: false, blocked: boolean, error: string}>}
  */
-async function fetchUpstreamResets(url, retries = MAX_RETRIES) {
-  let lastError = "unreachable";
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-    try {
-      const res = await fetch(url, {
-        signal: controller.signal,
-        headers: { "User-Agent": "WhenReset-Radar-Crosscheck/1.0", Accept: "application/json" },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      const json = await res.json();
-      const items = Array.isArray(json) ? json : json?.data;
-      if (!Array.isArray(items)) throw new Error("Invalid response format: data is not an array");
-      return { ok: true, items };
-    } catch (err) {
-      lastError = err?.message || "unreachable";
-      if (attempt < retries) await new Promise((r) => setTimeout(r, 1000 * attempt));
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  }
-  return { ok: false, error: lastError };
+async function fetchUpstreamResetsWithRetry(url) {
+  const result = await fetchUpstreamResets(url, {
+    ua: "WhenReset-Radar-Crosscheck/1.0",
+    timeoutMs: TIMEOUT_MS,
+    retries: MAX_RETRIES,
+  });
+  if (result.ok) return { ok: true, items: result.items };
+  return { ok: false, blocked: result.blocked, error: result.detail };
 }
 
 /** Gaps in (0, 90) days — identical to collectIntervals() in src/lib/forecast.ts. */
@@ -147,13 +133,22 @@ Options:
   }
 
   console.log(`📡 Cross-checking upstream: ${options.upstreamUrl}`);
-  const upstream = await fetchUpstreamResets(options.upstreamUrl);
+  const upstream = await fetchUpstreamResetsWithRetry(options.upstreamUrl);
+
+  if (!upstream.ok && upstream.blocked) {
+    // Not "no changes" — we genuinely do not know. Exit 4 so the workflow can
+    // keep going without mistaking silence for agreement.
+    console.warn(`⚠️  [CROSSCHECK] Cannot reach upstream from this network: ${upstream.error}`);
+    console.warn(BLOCKED_EXPLANATION.split("\n").map((l) => `   ${l}`).join("\n"));
+    console.log(`::crosscheck::${JSON.stringify({ ok: false, blocked: true, error: upstream.error })}`);
+    process.exit(4);
+  }
 
   if (!upstream.ok) {
     console.error(`❌ [CROSSCHECK] Upstream unreachable after ${MAX_RETRIES} attempts: ${upstream.error}`);
     console.error("   Reporting FAILURE rather than an empty diff. A dead upstream is not");
     console.error("   'no changes' — treating it as such is how the dataset silently stopped updating.");
-    console.log(`::crosscheck::${JSON.stringify({ ok: false, error: upstream.error })}`);
+    console.log(`::crosscheck::${JSON.stringify({ ok: false, blocked: false, error: upstream.error })}`);
     process.exit(1);
   }
 

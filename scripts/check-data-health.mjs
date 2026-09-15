@@ -22,9 +22,11 @@
  *   3. No duplicate ids.
  *   4. Every record declares a recognised `provenance`.
  *   5. The newest record is not older than --max-staleness-days (default 14).
- *   6. Unless --skip-upstream, the upstream probe answers.
+ *   6. Unless --skip-upstream, the upstream probe answers. A Cloudflare edge
+ *      challenge (see scripts/lib/upstream.mjs) is a warning, not a failure.
  *
- * Exit codes: 0 = healthy, 1 = unhealthy (details on stdout).
+ * Exit codes: 0 = healthy, 1 = unhealthy, 4 = upstream blocked by the edge.
+ * Details always go to stdout.
  *
  * Cadence statistic: `medianIntervalDays` uses the SAME window as the site's
  * forecast — gaps in (0, 90) days, median rather than mean. If
@@ -36,15 +38,25 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { BLOCKED_EXPLANATION, DEFAULT_UPSTREAM_URL, fetchUpstreamResets } from "./lib/upstream.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE_PATH = path.resolve(__dirname, "../src/data/fallback-resets.json");
 
-const DEFAULT_UPSTREAM_URL =
-  process.env.UPSTREAM_RESETS_URL || "https://codex-resets.com/api/v1/resets";
 const DEFAULT_MAX_STALENESS_DAYS = 14;
-const PROBE_TIMEOUT_MS = 6000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Exit codes:
+ *   0 = healthy
+ *   1 = unhealthy — something a human has to fix (see stdout)
+ *   4 = degraded — upstream is unreachable because Cloudflare challenges our
+ *       datacenter egress. The dataset checks all passed. Deliberately not a
+ *       failure: the five-minute schedule would otherwise mail a red build
+ *       288 times a day about a condition CI cannot act on, and every later
+ *       step in the pipeline (cross-check, probe, notify) would be skipped.
+ */
+const EXIT_BLOCKED = 4;
 
 /** Mirrors the union accepted by the writers. */
 const VALID_PROVENANCE = new Set(["manual", "upstream", "x_api", "official_status"]);
@@ -109,23 +121,15 @@ function round1(value) {
 }
 
 async function probeUpstream(url) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { "User-Agent": "WhenReset-Radar-Health/1.0", Accept: "application/json" },
-    });
-    if (!res.ok) return { ok: false, detail: `HTTP ${res.status} ${res.statusText}` };
-    const json = await res.json();
-    const items = Array.isArray(json) ? json : json?.data;
-    if (!Array.isArray(items)) return { ok: false, detail: "response is not an array" };
-    return { ok: true, detail: `${items.length} records`, count: items.length };
-  } catch (err) {
-    return { ok: false, detail: err?.message || "unreachable" };
-  } finally {
-    clearTimeout(timeoutId);
+  const result = await fetchUpstreamResets(url, {
+    ua: "WhenReset-Radar-Health/1.0",
+    timeoutMs: 6000,
+  });
+
+  if (result.ok) {
+    return { ok: true, blocked: false, detail: result.detail, count: result.items.length };
   }
+  return { ok: false, blocked: result.blocked, detail: result.detail };
 }
 
 async function main() {
@@ -144,6 +148,12 @@ Options:
   --skip-upstream           Skip the network probe (offline / CI without egress)
   --json                    Emit a machine-readable summary on the last line
   -h, --help                Show this message
+
+Exit codes:
+  0  healthy
+  1  unhealthy (dataset problem, or an upstream failure that is not a challenge)
+  4  degraded — upstream answered with a Cloudflare edge challenge. The dataset
+     passed every check; CI simply cannot reach the API from a datacenter.
 `);
     process.exit(0);
   }
@@ -247,16 +257,24 @@ Options:
   }
 
   // --- upstream probe --------------------------------------------------------
-  let upstream = { ok: null, detail: "skipped" };
+  let upstream = { ok: null, blocked: false, detail: "skipped" };
   if (!options.skipUpstream) {
     upstream = await probeUpstream(options.upstreamUrl);
     if (!upstream.ok) {
-      failures.push(`upstream probe failed: ${upstream.detail}`);
+      if (upstream.blocked) {
+        warnings.push(`upstream unreachable from CI: ${upstream.detail}`);
+        warnings.push(BLOCKED_EXPLANATION);
+      } else {
+        failures.push(`upstream probe failed: ${upstream.detail}`);
+      }
     }
   }
 
   // --- report ----------------------------------------------------------------
   const healthy = failures.length === 0;
+  // Degraded, not healthy: the dataset passed, but the run could not see
+  // upstream, so "no divergences" is not something this run can claim.
+  const degraded = healthy && upstream.blocked;
 
   if (!options.json) {
     console.log("================================================================");
@@ -267,29 +285,46 @@ Options:
     console.log(`  Newest record       : ${latest?.announced_at ?? "n/a"} (${daysSinceLatest ?? "?"}d ago)`);
     console.log(`  Median cadence      : ${medianIntervalDays}d  (same (0,90) window as the site)`);
     console.log(`  Longest recorded gap: ${longestWaitDays}d`);
-    console.log(`  Upstream probe      : ${upstream.ok === null ? "skipped" : upstream.ok ? "OK" : "FAILED"} — ${upstream.detail}`);
+    console.log(`  Upstream probe      : ${
+      upstream.ok === null
+        ? "skipped"
+        : upstream.ok
+          ? "OK"
+          : upstream.blocked
+            ? "BLOCKED"
+            : "FAILED"
+    } — ${upstream.detail}`);
     console.log(`  Staleness threshold : ${options.maxStalenessDays}d`);
     console.log("----------------------------------------------------------------");
     for (const w of warnings) console.log(`  ⚠️  ${w}`);
     for (const f of failures) console.log(`  ❌ ${f}`);
-    if (healthy) console.log("  ✅ HEALTHY");
+    if (!healthy) {
+      // Failures are printed above.
+    } else if (degraded) {
+      console.log("  ⚠️  DEGRADED — dataset healthy, upstream blocked by the edge (exit 4)");
+    } else {
+      console.log("  ✅ HEALTHY");
+    }
     console.log("================================================================");
   }
 
   console.log(
     `::health::${JSON.stringify({
-      ok: healthy,
+      ok: healthy && !degraded,
+      degraded,
       total: resets.length,
       byProvenance,
       medianIntervalDays,
       longestWaitDays,
       daysSinceLatest,
       upstreamOk: upstream.ok,
+      upstreamBlocked: upstream.blocked,
       failures,
       warnings,
     })}`
   );
 
+  if (degraded) process.exit(EXIT_BLOCKED);
   process.exit(healthy ? 0 : 1);
 }
 
