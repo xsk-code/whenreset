@@ -25,6 +25,102 @@ interface ForecastHeroProps {
   onOpenShare: () => void;
 }
 
+/**
+ * Advice severity is derived from the forecast, never authored by hand, so the
+ * copy can never claim more certainty than the number it sits next to.
+ * "scheduled" is the only tier backed by an official timestamp.
+ */
+type AdviceTier = "scheduled" | "critical" | "elevated" | "calm";
+
+interface AdviceCopy {
+  tier: AdviceTier;
+  label: { en: string; zh: string };
+  headline: { en: string; zh: string };
+  body: { en: string; zh: string };
+}
+
+const TIER_SKIN: Record<
+  AdviceTier,
+  { wrap: string; label: string; headline: string; body: string; dot: string }
+> = {
+  scheduled: {
+    wrap: "border-2 border-rose-500/60 bg-rose-500/[0.14] shadow-glow-amber",
+    label: "text-rose-300",
+    headline: "text-rose-100",
+    body: "text-rose-100/90",
+    dot: "bg-rose-400",
+  },
+  critical: {
+    wrap: "border border-amber-500/45 bg-amber-500/[0.10]",
+    label: "text-amber-300",
+    headline: "text-amber-100",
+    body: "text-amber-100/85",
+    dot: "bg-amber-400",
+  },
+  elevated: {
+    wrap: "border border-blue-500/35 bg-blue-500/[0.07]",
+    label: "text-blue-300",
+    headline: "text-blue-100",
+    body: "text-blue-100/85",
+    dot: "bg-blue-400",
+  },
+  calm: {
+    wrap: "border border-white/[0.06] bg-white/[0.03]",
+    label: "text-slate-400",
+    headline: "text-slate-200",
+    body: "text-slate-300",
+    dot: "bg-emerald-400",
+  },
+};
+
+const AdviceBlock: React.FC<{
+  advice: AdviceCopy;
+  lang: "en" | "zh";
+  full?: boolean;
+}> = ({ advice, lang, full = false }) => {
+  const isZh = lang === "zh";
+  const skin = TIER_SKIN[advice.tier];
+  const loud = advice.tier === "scheduled";
+
+  return (
+    <div className={`rounded-xl ${skin.wrap} ${loud ? "p-5 sm:p-6" : "p-4"}`}>
+      <div
+        className={`mb-1.5 flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider ${skin.label}`}
+      >
+        <span className="relative flex h-2.5 w-2.5">
+          {loud && (
+            <span
+              className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${skin.dot}`}
+            />
+          )}
+          <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${skin.dot}`} />
+        </span>
+        <span>{isZh ? advice.label.zh : advice.label.en}</span>
+      </div>
+
+      <p
+        className={`font-bold ${skin.headline} ${
+          loud
+            ? "text-3xl leading-none tracking-tight sm:text-4xl"
+            : full
+            ? "text-xl leading-snug sm:text-2xl"
+            : "text-base leading-snug"
+        }`}
+      >
+        {isZh ? advice.headline.zh : advice.headline.en}
+      </p>
+
+      <p
+        className={`mt-2 ${skin.body} ${
+          loud ? "text-sm font-medium leading-relaxed sm:text-base" : "text-xs leading-relaxed sm:text-[13px]"
+        }`}
+      >
+        {isZh ? advice.body.zh : advice.body.en}
+      </p>
+    </div>
+  );
+};
+
 export const ForecastHero: React.FC<ForecastHeroProps> = ({
   resets,
   forecast,
@@ -104,17 +200,52 @@ export const ForecastHero: React.FC<ForecastHeroProps> = ({
       ? "低置信 (样本较少)"
       : "LOW CONFIDENCE (SMALL SAMPLE)";
 
-  const actionAdvice = scheduled
-    ? isZh
-      ? "官方已确认重置时间，请合理安排当前剩余额度。"
-      : "Official drop is locked. Budget remaining tokens accordingly."
+  // Wording deliberately never restates "past the median cadence": that claim
+  // only holds when cooldownRatio > 1, while this tier can also be reached at a
+  // lower ratio once the incident boost is added. The breakdown panel above is
+  // the place that reports the actual ratio.
+  const advice: AdviceCopy = scheduled
+    ? {
+        tier: "scheduled",
+        label: { en: "Act now", zh: "立即行动" },
+        headline: { en: "Burn it. Now.", zh: "快蹬！" },
+        body: {
+          en: "OpenAI has published an exact reset time, and unspent quota does not carry over — whatever you leave on the table is gone the moment the reset lands. Go drain it while it still counts.",
+          zh: "官方已公布确切重置时刻，剩余额度不会结转到下一轮 —— 现在就去把它烧光，别把额度留给倒计时。手上没跑完的活，立刻开跑。",
+        },
+      }
     : likelihood >= 80
-    ? isZh
-      ? "已超过历史周期中位数，官方发布或补偿概率极高，建议保持关注！"
-      : "Past the median cadence. Stand by your tokens for an incoming drop."
-    : isZh
-    ? "额度池充足，适合专注编码，官方近期暂无异常重置信号。"
-    : "Safe to burn tokens. No abnormal reset triggers observed.";
+    ? {
+        tier: "critical",
+        label: { en: "Action recommendation", zh: "行动建议 (What to do)" },
+        headline: {
+          en: "High-probability window — a drop could land at any moment",
+          zh: "已进入高概率窗口，随时可能掉落",
+        },
+        body: {
+          en: "Start the long-running work now so the reset lands into active use, and avoid pinning a hard deadline to this window.",
+          zh: "把耗时的长任务先开起来，让重置落在正在使用的额度上；也尽量别把硬性截止时间押在这个窗口里。",
+        },
+      }
+    : likelihood >= 60
+    ? {
+        tier: "elevated",
+        label: { en: "Action recommendation", zh: "行动建议 (What to do)" },
+        headline: { en: "Approaching the typical cadence", zh: "正在接近历史平均周期" },
+        body: {
+          en: "Still inside the normal band. No need to hoard quota — keep your usual pace; nothing abnormal has been signalled yet.",
+          zh: "仍在正常区间内，不必刻意留存额度，按平时节奏使用即可；官方目前没有异常重置信号。",
+        },
+      }
+    : {
+        tier: "calm",
+        label: { en: "Action recommendation", zh: "行动建议 (What to do)" },
+        headline: { en: "Quota pool is healthy — a good time to focus on coding", zh: "额度池充足，适合专注编码" },
+        body: {
+          en: "The last reset landed recently and no abnormal triggers are showing. Safe to spend freely.",
+          zh: "距上次重置不久，官方近期暂无异常重置信号，可以放心把额度用掉。",
+        },
+      };
 
   return (
     <div className="relative overflow-hidden rounded-2xl glass-panel p-6 sm:p-8 md:p-10 mb-8 border border-white/10">
@@ -141,6 +272,15 @@ export const ForecastHero: React.FC<ForecastHeroProps> = ({
         </div>
       </div>
 
+      {/* A scheduled reset is the only tier backed by a real official timestamp and
+          the one moment where burning quota actually matters, so it gets the loud
+          full-width alert instead of the quiet side panel. */}
+      {scheduled && (
+        <div className="mb-6">
+          <AdviceBlock advice={advice} lang={lang} full />
+        </div>
+      )}
+
       {/* Main Core Grid: Gauge & Countdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Side: Reset Likelihood Gauge (5 cols) */}
@@ -164,12 +304,9 @@ export const ForecastHero: React.FC<ForecastHeroProps> = ({
             </span>
           </div>
 
-          <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
-            <div className="text-xs font-semibold text-slate-400 uppercase mb-1">
-              {isZh ? "行动建议 (What to do)" : "ACTION RECOMMENDATION"}
-            </div>
-            <p className="text-sm font-medium text-slate-200 leading-relaxed">{actionAdvice}</p>
-          </div>
+          {/* Rendered above as a full-width alert when a reset is scheduled, so the
+              side slot is skipped for that tier to avoid showing the copy twice. */}
+          {!scheduled && <AdviceBlock advice={advice} lang={lang} />}
 
           {/* Provenance of the number - every factor is visible */}
           <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-4">
