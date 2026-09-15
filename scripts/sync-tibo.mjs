@@ -30,18 +30,20 @@
  *   0  probe finished with nothing pending, or a manual ingestion succeeded
  *   1  fatal: dataset unreadable, upstream unreachable, or bad arguments
  *   3  probe finished and records await human confirmation
+ *   4  upstream answered with a Cloudflare edge challenge: nothing could be
+ *      detected, and nothing was disproved. Deliberately not a failure.
  */
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DEFAULT_UPSTREAM_URL, fetchUpstreamResets } from "./lib/upstream.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE_PATH = path.resolve(__dirname, "../src/data/fallback-resets.json");
 
-const UPSTREAM_RESETS_URL =
-  process.env.UPSTREAM_RESETS_URL || "https://codex-resets.com/api/v1/resets";
+const UPSTREAM_RESETS_URL = process.env.UPSTREAM_RESETS_URL || DEFAULT_UPSTREAM_URL;
 const TIMEOUT_MS = 6000;
 
 // Bounds for the machine-readable payload. Feishu rejects any request body over
@@ -109,32 +111,19 @@ function parseArgs() {
 }
 
 /**
- * @returns {Promise<{ok: true, items: unknown[]} | {ok: false, error: string}>}
+ * @returns {Promise<{ok: true, items: unknown[]} | {ok: false, blocked: boolean, error: string}>}
  * Never silently degrades to an empty list: an unreachable upstream is an
- * error the caller must surface, not a quiet "nothing new".
+ * error the caller must surface, not a quiet "nothing new". A Cloudflare edge
+ * challenge is flagged as `blocked` so the caller can tell "the network is not
+ * allowed to see upstream" apart from "upstream is broken".
  */
 async function fetchUpstream(url) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "WhenReset-Radar/1.0",
-        Accept: "application/json",
-      },
-    });
-    if (!res.ok) return { ok: false, error: `HTTP ${res.status} ${res.statusText}` };
-
-    const json = await res.json();
-    const items = Array.isArray(json) ? json : json?.data;
-    if (!Array.isArray(items)) return { ok: false, error: "response is not an array" };
-    return { ok: true, items };
-  } catch (err) {
-    return { ok: false, error: err?.message || "unreachable" };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  const result = await fetchUpstreamResets(url, {
+    ua: "WhenReset-Radar/1.0",
+    timeoutMs: TIMEOUT_MS,
+  });
+  if (result.ok) return { ok: true, items: result.items };
+  return { ok: false, blocked: result.blocked, error: result.detail };
 }
 
 async function readLocalResets() {
@@ -246,6 +235,23 @@ Exit codes: 0 ok / 1 fatal / 3 records await confirmation
 
   // ---- Mode 1: probe (read-only) -------------------------------------------
   const upstream = await fetchUpstream(UPSTREAM_RESETS_URL);
+
+  if (!upstream.ok && upstream.blocked) {
+    // Nothing was detected, but nothing was *disproved* either. Exit 4 so the
+    // workflow stays green without recording "0 pending" as a fact — that
+    // value is what closes the confirmation issue.
+    console.error(`⚠️  [SYNC] Upstream not reachable from this network: ${upstream.error}`);
+    console.error(`   url: ${UPSTREAM_RESETS_URL}`);
+    console.error("   Probing is degraded; pending records, if any, are unknown.");
+    if (options.json) {
+      process.stdout.write(
+        `${JSON.stringify({ mode: "probe", ok: false, blocked: true, error: upstream.error })}\n`
+      );
+    } else {
+      console.log(`::probe::${JSON.stringify({ mode: "probe", ok: false, blocked: true, error: upstream.error })}`);
+    }
+    process.exit(4);
+  }
 
   if (!upstream.ok) {
     // The whole point of this branch: an unreachable upstream is a RED LIGHT.
