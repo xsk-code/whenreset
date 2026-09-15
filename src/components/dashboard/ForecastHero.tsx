@@ -9,6 +9,7 @@ import {
   formatZonedTime,
   isValidTimeZone,
   orderZones,
+  type ResetZone,
 } from "@/lib/timezones";
 import {
   Calendar,
@@ -124,6 +125,98 @@ const AdviceBlock: React.FC<{
       >
         {isZh ? advice.body.zh : advice.body.en}
       </p>
+    </div>
+  );
+};
+
+/**
+ * One absolute instant, read off every region's clock.
+ *
+ * Rendered in both modes: inside a scheduled window the instant is official,
+ * otherwise it is the forecast target. Only the framing changes — rose and
+ * "official" wording when a real announcement backs the timestamp, neutral blue
+ * with an explicit "this is a forecast" note when it does not. Keeping the strip
+ * visible at all times means the layout never jumps when a reset gets scheduled.
+ */
+const ZoneClockStrip: React.FC<{
+  target: Date;
+  zones: ResetZone[];
+  lang: "en" | "zh";
+  scheduled: boolean;
+}> = ({ target, zones, lang, scheduled }) => {
+  const isZh = lang === "zh";
+
+  const shell = scheduled
+    ? "border-rose-500/25 bg-rose-500/[0.06]"
+    : "border-white/[0.08] bg-white/[0.02]";
+  const heading = scheduled ? "text-rose-300" : "text-slate-400";
+  const localCell = scheduled
+    ? "border-rose-400/60 bg-rose-500/15"
+    : "border-blue-400/60 bg-blue-500/[0.15]";
+  const localLabel = scheduled ? "text-rose-200" : "text-blue-200";
+  const localBadge = scheduled ? "bg-rose-400/30 text-rose-50" : "bg-blue-400/30 text-blue-50";
+  const localValue = scheduled ? "text-rose-100" : "text-blue-100";
+
+  const title = scheduled
+    ? isZh
+      ? "官方时刻 · 各时区本地钟点"
+      : "OFFICIAL TIME · LOCAL CLOCK BY ZONE"
+    : isZh
+    ? "预计时刻 · 各时区本地钟点"
+    : "ESTIMATED TIME · LOCAL CLOCK BY ZONE";
+
+  const footnote = scheduled
+    ? isZh
+      ? "同一个绝对时刻在各地时钟上的读数，换算取自 IANA 时区数据库，已包含夏令时。"
+      : "One absolute instant, read off each local clock. Converted via the IANA time-zone database, DST included."
+    : isZh
+    ? "同一个绝对时刻在各地时钟上的读数，换算取自 IANA 时区数据库；该时刻为预测值，非官方时刻表。"
+    : "One absolute instant, read off each local clock, converted via the IANA time-zone database. This instant is a forecast, not an official timetable.";
+
+  return (
+    <div className={`mt-4 rounded-lg border p-3 ${shell}`}>
+      <div
+        className={`mb-2 flex items-center space-x-1.5 text-[10px] font-semibold uppercase tracking-wider ${heading}`}
+      >
+        <Globe className="h-3 w-3" />
+        <span>{title}</span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {zones.map((zone) => (
+          <div
+            key={zone.id}
+            className={`rounded-md border px-2.5 py-1.5 ${
+              zone.isLocal ? localCell : "border-white/10 bg-[#080B11]/60"
+            }`}
+          >
+            <div className="flex items-center space-x-1">
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-wide ${
+                  zone.isLocal ? localLabel : "text-slate-400"
+                }`}
+              >
+                {isZh ? zone.labelZh : zone.labelEn}
+              </span>
+              {zone.isLocal && (
+                <span className={`rounded-sm px-1 text-[9px] font-bold ${localBadge}`}>
+                  {isZh ? "你的" : "YOU"}
+                </span>
+              )}
+            </div>
+            <div
+              className={`font-mono text-xs font-bold ${
+                zone.isLocal ? localValue : "text-slate-200"
+              }`}
+            >
+              {formatZonedTime(target, zone.id, lang)}
+            </div>
+            <div className="font-mono text-[9px] text-slate-500">
+              {formatZoneOffset(target, zone.id)}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[10px] text-slate-400">{footnote}</p>
     </div>
   );
 };
@@ -436,62 +529,10 @@ export const ForecastHero: React.FC<ForecastHeroProps> = ({
             </div>
           </div>
 
-          {/* A scheduled reset pins one exact instant, so the ±hour forecast
-              window — and its "unofficial" disclaimer — no longer describes
-              anything. It is replaced by that same instant read off each
-              region's clock. Every other tier keeps the forecast footnote. */}
-          {scheduled ? (
-            <div className="mt-4 rounded-lg border border-rose-500/25 bg-rose-500/[0.06] p-3">
-              <div className="mb-2 flex items-center space-x-1.5 text-[10px] font-semibold uppercase tracking-wider text-rose-300">
-                <Globe className="h-3 w-3" />
-                <span>
-                  {isZh ? "官方时刻 · 各时区本地钟点" : "OFFICIAL TIME · LOCAL CLOCK BY ZONE"}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {zoneRows.map((zone) => (
-                  <div
-                    key={zone.id}
-                    className={`rounded-md border px-2.5 py-1.5 ${
-                      zone.isLocal
-                        ? "border-rose-400/60 bg-rose-500/15"
-                        : "border-white/10 bg-[#080B11]/60"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span
-                        className={`text-[10px] font-semibold uppercase tracking-wide ${
-                          zone.isLocal ? "text-rose-200" : "text-slate-400"
-                        }`}
-                      >
-                        {isZh ? zone.labelZh : zone.labelEn}
-                      </span>
-                      {zone.isLocal && (
-                        <span className="rounded-sm bg-rose-400/30 px-1 text-[9px] font-bold text-rose-50">
-                          {isZh ? "你的" : "YOU"}
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className={`font-mono text-xs font-bold ${
-                        zone.isLocal ? "text-rose-100" : "text-slate-200"
-                      }`}
-                    >
-                      {formatZonedTime(targetDate, zone.id, lang)}
-                    </div>
-                    <div className="font-mono text-[9px] text-slate-500">
-                      {formatZoneOffset(targetDate, zone.id)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-2 text-[10px] text-slate-400">
-                {isZh
-                  ? "以上是同一个绝对时刻在各地时钟上的读数，换算取自 IANA 时区数据库，已包含夏令时。"
-                  : "One absolute instant, read off each local clock. Converted via the IANA time-zone database, DST included."}
-              </p>
-            </div>
-          ) : (
+          {/* The ±hour forecast window only describes the unscheduled tiers, so
+              it hides once an exact instant exists. The per-zone clock strip
+              below stays visible in both modes. */}
+          {!scheduled && (
             <p className="text-xs text-slate-400 mt-2">
               {isZh
                 ? `* 预测窗口 ${forecast.windowStart.toLocaleString("zh-CN", {
@@ -522,6 +563,13 @@ export const ForecastHero: React.FC<ForecastHeroProps> = ({
                   )}d median of ${forecast.sampleSize} real reset intervals. Unofficial.`}
             </p>
           )}
+
+          <ZoneClockStrip
+            target={targetDate}
+            zones={zoneRows}
+            lang={lang}
+            scheduled={scheduled}
+          />
         </div>
       </div>
 
