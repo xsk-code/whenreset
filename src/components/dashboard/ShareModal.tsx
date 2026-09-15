@@ -74,8 +74,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     };
   }, [isOpen, domain]);
 
-  if (!isOpen) return null;
-
   const drawCard = async (ctx: CanvasRenderingContext2D) => {
     const likelihoodValue = `${likelihood}%`;
     const host = domain.replace(/^https?:\/\//, "");
@@ -200,6 +198,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     void drawCard(ctx);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userName, likelihood, estimatedNextDate, daysSinceLast, qrDataUrl, lang]);
+
+  // Must stay below every hook: returning above the canvas effect made that
+  // effect appear only on the open render, which broke the hook order.
+  if (!isOpen) return null;
 
   const handleDownload = () => {
     const canvas = canvasRef.current;
