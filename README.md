@@ -176,3 +176,40 @@ npm run build
 
 - 本项目代码遵循 [MIT 许可证](LICENSE) 开源；
 - 致敬 80 年代经典红白机街机游戏与全球开源 AI 开发者社区。
+
+---
+
+## 🔧 v2 Dashboard：环境变量与告警通道
+
+> 注意：本文件上半部分描述的是早期的 **8-Bit Retro 像素版本**，当前代码已重构为
+> **Modern Frosted-Glass Dashboard**（见 `src/components/dashboard/`），马里奥主题组件已归档删除。
+> 该版本不需要任何环境变量即可运行；以下变量仅在启用「服务端推送」时才需要。
+
+| 环境变量 | 作用 | 未配置时的行为 |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | 站点域名，统一驱动 canonical / sitemap / ICS / 二维码 | 回退到 `https://whenreset.top` |
+| `CRON_SECRET` | 保护 `/api/cron/dispatch` 的 Bearer token | 不配置则该端点不校验身份（不推荐） |
+| `ADMIN_BARK_KEY` | 每日摘要推送的 Bark 目标 | 跳过 Bark 投递 |
+| `ADMIN_WEBHOOK_URL` | 每日摘要推送的群机器人 Webhook | 跳过 Webhook 投递 |
+| `RESEND_API_KEY` | 邮件订阅通道密钥 | `/api/subscribe` 返回 `configured:false`，UI 如实提示 |
+| `RESEND_AUDIENCE_ID` | 可选，Resend 读者列表 ID | 不带 audience 直接建联系人 |
+
+### 推送链路说明
+
+- 面向个人的告警在**浏览器端守护进程**里触发（`src/lib/useAlertGuardian.ts`）：命中概率阈值或出现新的官方公告时，
+  调用 `/api/push` 由服务端代理发出，避免 Webhook 的 CORS 限制。
+- `/api/push` 带目标主机白名单（Bark / 企业微信 / 飞书 / Discord / Slack），非白名单目标直接 403，防止沦为开放 SSRF 中继。
+- 每日摘要由 Vercel Cron 触发（见 `vercel.json`，每天 09:00 UTC）。
+
+### 预测模型
+
+统一入口为 `src/lib/forecast.ts`，全站（首页、SEO 页、ICS、Cron）共用同一个结果：
+
+```
+likelihood = 92 * (1 - e^(-1.6 * daysSinceLast / medianInterval)) + incidentBoost
+incidentBoost ≤ 15   // 来自 status.openai.com 的实时事故信号
+```
+
+- `medianInterval` 取历史间隔中位数（而非平均值），避免极端干旱期拉偏整体；
+- 非官方定档时上限 97%，永不谎称 100%；
+- 首页「概率构成明细」卡片会把每一项的实际贡献显示出来。
