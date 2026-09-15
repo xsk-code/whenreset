@@ -1,5 +1,16 @@
 [
   {
+    "id": "2098685367058612394",
+    "reset_type": "regular",
+    "announced_at": "2026-09-12T08:09:17.000Z",
+    "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
+    "source": {
+      "type": "x_post",
+      "author": "thsottiaux",
+      "url": "https://x.com/thsottiaux/status/2098685367058612394"
+    }
+  },
+  {
     "id": "2097752790177370535",
     "reset_type": "banked",
     "announced_at": "2026-09-09T18:23:34.000Z",
