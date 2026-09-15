@@ -24,8 +24,12 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
-.env
+# `.env*` instead of `.env` + `.env*.local`: Next.js also reads
+# .env.production / .env.development / .env.test, which the narrower
+# patterns left untracked-but-not-ignored — one `git add -A` would have
+# committed real credentials. The negation keeps an example file shareable.
+.env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
