@@ -4,6 +4,9 @@
 > 
 > 针对全球高强度使用 AI 编程工具（OpenAI Codex, Claude Code, Grok）的开发者，提供毫秒级配额重置倒计时、统计学概率预测雷达、26 周重置全景热力图、RFC 5545 日历同步与多渠道（Bark / Webhook / 邮件）开发者强提醒服务。
 
+[![reset radar](https://whenreset.top/api/badge?metric=likelihood)](https://whenreset.top)
+[![since last reset](https://whenreset.top/api/badge?metric=elapsed&theme=light)](https://whenreset.top)
+
 [![Next.js 15](https://img.shields.io/badge/Next.js-15.2.0-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.0.0-blue?style=flat-square&logo=react)](https://react.dev/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4.17-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)

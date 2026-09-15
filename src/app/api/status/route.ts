@@ -3,6 +3,7 @@ import fallbackResets from "@/data/fallback-resets.json";
 import fallbackScheduled from "@/data/fallback-scheduled.json";
 import { ResetItem, StatusResponse, ScheduledReset } from "@/lib/types";
 import { calculateStats } from "@/lib/utils";
+import { reconcileResets } from "@/lib/radar-snapshot";
 
 export const runtime = "nodejs";
 
@@ -24,16 +25,19 @@ export async function GET() {
     if (upstreamRes.ok) {
       const data: StatusResponse = await upstreamRes.json();
       const localResets = fallbackResets as ResetItem[];
-      const localLatest = localResets[0];
+      const upstreamLatest = data?.data?.latest_reset ?? null;
       
-      // If local dataset has a newer completed reset than upstream, use local latest & recompute stats
-      if (localLatest && data?.data?.latest_reset) {
-        const localTime = new Date(localLatest.announced_at).getTime();
-        const upstreamTime = new Date(data.data.latest_reset.announced_at).getTime();
-        if (localTime > upstreamTime) {
-          data.data.latest_reset = localLatest;
-          data.data.stats = calculateStats(localResets);
-        }
+      // Arbitration lives in radar-snapshot.ts so that every surface resolves a
+      // local/upstream disagreement identically. Only the decision is shared
+      // here: this endpoint keeps its original response shape and stats input.
+      const { localLatestWins, latestReset } = reconcileResets(
+        localResets,
+        upstreamLatest ? [upstreamLatest] : null
+      );
+
+      if (localLatestWins && latestReset) {
+        data.data.latest_reset = latestReset;
+        data.data.stats = calculateStats(localResets);
       }
 
       return NextResponse.json(data, {

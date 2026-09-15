@@ -7,7 +7,7 @@ export const SITE_CONFIG = {
   domain: process.env.NEXT_PUBLIC_SITE_URL || "https://whenreset.top",
   twitterHandle: "@WhenReset",
   author: "WhenReset Community",
-  githubUrl: "https://github.com",
+  githubUrl: "https://github.com/xsk-code/whenreset",
   statusUrl: "https://status.openai.com",
   defaultCadenceDays: 3.3,
   supportPlatforms: ["Codex", "Claude", "Grok"],
