@@ -65,6 +65,16 @@ function timeOf(item: ResetItem | null | undefined): number {
 }
 
 /**
+ * Records arriving from upstream carry no provenance — upstream has no concept
+ * of it. Label them at the boundary so every record leaving this module states
+ * where it came from. Without this, `/api/resets` served rows with no
+ * provenance whenever the upstream copy displaced the local one.
+ */
+function withUpstreamProvenance(item: ResetItem): ResetItem {
+  return item.provenance ? item : { ...item, provenance: "upstream" };
+}
+
+/**
  * Arbitration rule: when the local dataset and the upstream proxy disagree
  * about the same record, the **later `announced_at` wins**. No source is given
  * priority by rank.
@@ -74,8 +84,9 @@ function timeOf(item: ResetItem | null | undefined): number {
  * so a blanket "local first" rule would make the site slower and staler. This
  * is why the rule is "newest wins" rather than "own source wins".
  *
- * On an exact tie the upstream copy is kept, which preserves the behaviour the
- * site had before this module existed.
+ * On an exact tie the LOCAL copy is kept. The timestamps agree, so there is
+ * nothing to arbitrate — and the local record additionally carries the audit
+ * fields (provenance) that upstream knows nothing about.
  */
 export function reconcileResets(
   local: ResetItem[],
@@ -100,7 +111,7 @@ export function reconcileResets(
 
     if (!existing) {
       order.push(id);
-      byId.set(id, item);
+      byId.set(id, withUpstreamProvenance(item));
       continue;
     }
 
@@ -113,9 +124,10 @@ export function reconcileResets(
 
     if (differs) conflicts += 1;
 
-    // Later timestamp wins; on a tie keep the upstream copy (status quo).
-    if (!Number.isFinite(existingTime) || incomingTime >= existingTime) {
-      byId.set(id, item);
+    // Strictly later timestamp wins. On an exact tie the local copy stands —
+    // see the arbitration note above.
+    if (!Number.isFinite(existingTime) || incomingTime > existingTime) {
+      byId.set(id, withUpstreamProvenance(item));
     }
   }
 

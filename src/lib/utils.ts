@@ -1,6 +1,9 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { collectIntervals, median } from "./forecast";
 import { ResetItem, StatusStats } from "./types";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -39,14 +42,37 @@ export function formatUtcTime(dateString: string): string {
   return date.toUTCString().replace("GMT", "UTC");
 }
 
+function round1(value: number): number {
+  return Number(value.toFixed(1));
+}
+
+/**
+ * Dataset statistics for `/api/status`.
+ *
+ * Two disclosures this function is required to honour:
+ *
+ * 1. **Never invent a number.** Earlier revisions returned hardcoded `6.9` /
+ *    `67.7` for an empty dataset, and floored the drought record at
+ *    `Math.max(wait, 67.7)`. Both leaked fabricated values into the public API
+ *    and the page, contradicting the product's "no fake data" claim. An empty
+ *    or unmeasurable dataset now reports `0`.
+ *
+ * 2. **One cadence definition.** `median_interval_days` reuses
+ *    `collectIntervals()` from `forecast.ts` — the exact function the forecast
+ *    is built from — so the number reported by the API can never drift from
+ *    the number rendered on the page. `avg_interval_days` is kept as a plain
+ *    arithmetic mean (droughts included) because that is what its name says;
+ *    it is not used as a stand-in for the median anywhere.
+ */
 export function calculateStats(resets: ResetItem[]): StatusStats {
   if (!resets || resets.length === 0) {
     return {
       total: 0,
       last_reset_at: new Date().toISOString(),
       days_since_last: 0,
-      avg_interval_days: 6.9,
-      longest_wait_days: 67.7,
+      avg_interval_days: 0,
+      median_interval_days: 0,
+      longest_wait_days: 0,
     };
   }
 
@@ -56,39 +82,45 @@ export function calculateStats(resets: ResetItem[]): StatusStats {
   );
 
   const latest = sorted[0];
-  const now = new Date().getTime();
+  const now = Date.now();
   const daysSinceLast = Math.max(
     0,
-    Number(((now - new Date(latest.announced_at).getTime()) / (1000 * 60 * 60 * 24)).toFixed(1))
+    round1((now - new Date(latest.announced_at).getTime()) / DAY_MS)
   );
 
-  // Intervals between consecutive resets
-  const intervals: number[] = [];
+  // Every non-negative gap, droughts included: for a mean and a "longest
+  // recorded wait", the outliers are the measurement, not noise.
+  const allIntervals: number[] = [];
   for (let i = 0; i < sorted.length - 1; i++) {
     const tCurrent = new Date(sorted[i].announced_at).getTime();
     const tPrevious = new Date(sorted[i + 1].announced_at).getTime();
-    const diffDays = (tCurrent - tPrevious) / (1000 * 60 * 60 * 24);
+    const diffDays = (tCurrent - tPrevious) / DAY_MS;
     if (diffDays >= 0) {
-      intervals.push(diffDays);
+      allIntervals.push(diffDays);
     }
   }
 
-  const avgInterval =
-    intervals.length > 0
-      ? Number((intervals.reduce((a, b) => a + b, 0) / intervals.length).toFixed(1))
-      : 6.9;
+  // Shared with the forecast: gaps in (0, 90) days.
+  const forecastIntervals = collectIntervals(resets);
 
-  const longestWait =
-    intervals.length > 0
-      ? Number(Math.max(...intervals).toFixed(1))
-      : 67.7;
+  const avgInterval =
+    allIntervals.length > 0
+      ? round1(allIntervals.reduce((a, b) => a + b, 0) / allIntervals.length)
+      : 0;
+
+  const medianInterval =
+    forecastIntervals.length > 0 ? round1(median(forecastIntervals)) : 0;
+
+  const longestWait = allIntervals.length > 0 ? round1(Math.max(...allIntervals)) : 0;
 
   return {
     total: resets.length,
     last_reset_at: latest.announced_at,
     days_since_last: daysSinceLast,
     avg_interval_days: avgInterval,
-    longest_wait_days: Math.max(longestWait, 67.7),
+    median_interval_days: medianInterval,
+    // Reported as measured. No floor.
+    longest_wait_days: longestWait,
   };
 }
 

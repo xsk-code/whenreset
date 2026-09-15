@@ -3,7 +3,7 @@ import fallbackResets from "@/data/fallback-resets.json";
 import fallbackScheduled from "@/data/fallback-scheduled.json";
 import { ResetItem, StatusResponse, ScheduledReset } from "@/lib/types";
 import { calculateStats } from "@/lib/utils";
-import { reconcileResets } from "@/lib/radar-snapshot";
+import { UPSTREAM_STATUS_URL, reconcileResets } from "@/lib/radar-snapshot";
 
 export const runtime = "nodejs";
 
@@ -12,7 +12,12 @@ export async function GET() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    const upstreamRes = await fetch("https://codex-resets.com/api/v1/status", {
+    // The upstream address has exactly one definition (radar-snapshot.ts).
+    // It used to be duplicated here, which meant cutting the copy in
+    // radar-snapshot.ts during a degradation test still let this endpoint
+    // reach the real upstream — a false negative that hid whether the
+    // fallback path actually worked.
+    const upstreamRes = await fetch(UPSTREAM_STATUS_URL, {
       signal: controller.signal,
       next: { revalidate: 10 },
       headers: {
@@ -29,7 +34,7 @@ export async function GET() {
       
       // Arbitration lives in radar-snapshot.ts so that every surface resolves a
       // local/upstream disagreement identically. Only the decision is shared
-      // here: this endpoint keeps its original response shape and stats input.
+      // here: this endpoint keeps its original response shape.
       const { localLatestWins, latestReset } = reconcileResets(
         localResets,
         upstreamLatest ? [upstreamLatest] : null
@@ -37,8 +42,15 @@ export async function GET() {
 
       if (localLatestWins && latestReset) {
         data.data.latest_reset = latestReset;
-        data.data.stats = calculateStats(localResets);
       }
+
+      // Stats are computed from our own dataset instead of being relayed from
+      // upstream. Upstream may decide whether the site can render; it does not
+      // get to define our numbers. This also guarantees `median_interval_days`
+      // is present, as StatusStats requires — the relayed object predates that
+      // field — and keeps the arithmetic mean and the median on separate,
+      // clearly labelled footings.
+      data.data.stats = calculateStats(localResets);
 
       return NextResponse.json(data, {
         status: 200,
