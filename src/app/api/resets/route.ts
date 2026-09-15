@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       signal: controller.signal,
       next: { revalidate: 10 },
       headers: {
-        "User-Agent": "WhenReset-Mario-Tracker/1.0",
+        "User-Agent": "WhenReset-Radar/1.0",
         Accept: "application/json",
       },
     });
