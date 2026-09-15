@@ -3,6 +3,8 @@ import fallbackResets from "@/data/fallback-resets.json";
 import { ResetItem } from "@/lib/types";
 import { computeForecast, IncidentSignal } from "@/lib/forecast";
 import { SITE_CONFIG } from "@/lib/config";
+import { hostOf, isFeishuHost, payloadFor } from "@/lib/notify-payload";
+import { withFeishuSign } from "@/lib/feishu-sign";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,9 +15,15 @@ export const dynamic = "force-dynamic";
  * env vars. Per-user pushes are handled client-side by useAlertGuardian.
  *
  * Env vars:
- *   CRON_SECRET        - required bearer token for the request
- *   ADMIN_BARK_KEY     - Bark key that receives the digest
- *   ADMIN_WEBHOOK_URL  - WeCom/Feishu/Discord webhook that receives the digest
+ *   CRON_SECRET            - required bearer token for the request
+ *   ADMIN_BARK_KEY         - Bark key that receives the digest
+ *   ADMIN_WEBHOOK_URL      - WeCom/Feishu/Discord/Slack webhook for the digest
+ *   FEISHU_WEBHOOK_SECRET  - optional; signs the request when ADMIN_WEBHOOK_URL
+ *                            points at a Feishu bot with signature verification
+ *
+ * The payload shape comes from `@/lib/notify-payload` — the same module
+ * `/api/push` uses. This route used to hardcode WeCom's `{msgtype,text}` shape
+ * for any destination, so a Feishu webhook here silently failed to deliver.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -68,12 +76,28 @@ export async function GET(request: Request) {
   const webhook = process.env.ADMIN_WEBHOOK_URL;
   if (webhook) {
     try {
+      const host = hostOf(webhook);
+      results.webhookTarget = host ?? "unparseable-url";
+
+      let payload = payloadFor(host ?? "", title, body);
+      if (host && isFeishuHost(host)) {
+        payload = await withFeishuSign(payload, process.env.FEISHU_WEBHOOK_SECRET);
+      }
+
       const res = await fetch(webhook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ msgtype: "text", text: { content: `${title}\n${body}` } }),
+        body: JSON.stringify(payload),
       });
       results.webhook = res.status;
+
+      // Feishu answers HTTP 200 even when it rejects the request
+      // (19021 = signature or timestamp rejected). Reporting only `res.status`
+      // would call that a success, so the business code is surfaced as well.
+      if (host && isFeishuHost(host)) {
+        const echoed = (await res.json().catch(() => null)) as { code?: number } | null;
+        results.webhookCode = echoed?.code ?? "unreadable-response";
+      }
     } catch (err) {
       results.webhook = err instanceof Error ? err.message : "failed";
     }

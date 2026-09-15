@@ -15,9 +15,12 @@ name: Radar Data Pipeline
 #   • sync-upstream.mjs     — read-only cross-check. Reports divergences,
 #     never writes.
 #   • sync-tibo.mjs --probe — read-only. Reports records upstream knows that
-#     we do not, and exits 3 so this workflow can open a confirmation issue.
+#     we do not, and exits 3 so this workflow can raise a confirmation.
+#   • notify-feishu.mjs     — delivers the confirmation request to a Feishu
+#     group, with a one-click link. Deliberately NOT routed through the site:
+#     if whenreset.top is down, the person still has to be reachable.
 #   • sync-tibo.mjs --add-tweet — the ONLY write path, and it only runs on a
-#     manual dispatch with human-supplied text. Upstream never writes.
+#     manual dispatch or a confirmed one-click link. Upstream never writes.
 
 on:
   schedule:
@@ -45,6 +48,10 @@ on:
         options:
           - regular
           - banked
+      tweet_id:
+        description: "Record id (must match the record being confirmed)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -58,6 +65,14 @@ jobs:
   pipeline:
     name: Health gate, cross-check and probe
     runs-on: ubuntu-latest
+    env:
+      # Secrets are lifted into env at job level because a step-level `if:`
+      # cannot reference `secrets.*` directly — and the notification step has to
+      # be skippable without turning the run red when the channel is unset.
+      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
+      CONFIRM_SECRET: ${{ secrets.CONFIRM_SECRET }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://whenreset.top' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -77,7 +92,10 @@ jobs:
         id: probe
         run: |
           set +e
-          node scripts/sync-tibo.mjs --probe > probe.log 2>&1
+          # --json keeps stdout as exactly one JSON document (written to
+          # probe.json for the notifier) while every human-readable line goes to
+          # stderr (written to probe.log for the issue body).
+          node scripts/sync-tibo.mjs --probe --json > probe.json 2> probe.log
           code=$?
           set -e
           cat probe.log
@@ -89,17 +107,45 @@ jobs:
             exit 1
           fi
 
-      - name: Open confirmation issue
-        if: steps.probe.outputs.exit_code == '3'
+      - name: Raise, refresh or close the confirmation issue
+        id: confirm
+        if: steps.probe.outputs.exit_code == '3' || steps.probe.outputs.exit_code == '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TITLE="[Needs confirmation] Upstream reports reset records missing locally"
-          OPEN=$(gh issue list --state open --search "$TITLE in:title" --json number --jq 'length')
-          if [ "$OPEN" != "0" ]; then
-            echo "A confirmation issue is already open ($OPEN). Not creating another."
+          # The open issue doubles as the deduplication ledger. Without it the
+          # 5-minute schedule would re-notify the same pending record 288 times
+          # a day. A machine-readable marker in the body records which ids have
+          # already been announced; anything newer than that gets pushed again.
+          EXISTING=$(gh issue list --state open --limit 50 --json number,title \
+            --jq '[.[] | select(.title | startswith("[Needs confirmation]"))][0].number // ""')
+
+          if [ "${{ steps.probe.outputs.exit_code }}" = "0" ]; then
+            # Nothing awaits confirmation any more — usually because it was
+            # confirmed and ingested. Leaving a stale "needs confirmation"
+            # issue open trains people to ignore the next one.
+            if [ -n "$EXISTING" ]; then
+              gh issue comment "$EXISTING" --body "Every reported record is now in the dataset. Closing this issue."
+              gh issue close "$EXISTING"
+              echo "Closed stale confirmation issue #$EXISTING."
+            fi
+            echo "notify=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          KNOWN=""
+          if [ -n "$EXISTING" ]; then
+            KNOWN=$(gh issue view "$EXISTING" --json body --jq '.body' \
+              | sed -n 's/.*pending-ids: \([^>]*\)-->.*/\1/p' | head -1 | tr -d ' ' || true)
+          fi
+
+          IDS=$(node -e 'const p=require("./probe.json");console.log((p.records||[]).map(r=>r.id).join(","))')
+          NOTIFY=$(KNOWN="$KNOWN" IDS="$IDS" node -e '
+            const known = new Set((process.env.KNOWN || "").split(",").filter(Boolean));
+            const ids = (process.env.IDS || "").split(",").filter(Boolean);
+            console.log(ids.filter((id) => !known.has(id)).length);
+          ')
 
           {
             echo "The upstream API reports records this repository does not have yet."
@@ -112,18 +158,42 @@ jobs:
             echo '```'
             echo
             echo "## How to confirm"
-            echo "1. Open the announcement link for each record above."
-            echo "2. If it is real: run the **Radar Data Pipeline** workflow manually (Actions → Run workflow)"
-            echo "   with \`tweet_text\`, \`tweet_url\`, \`tweet_at\` and \`tweet_type\` filled in."
-            echo "3. If it is a false report: just close this issue."
+            echo "The fastest route is the **Feishu notification**, which links to a page that"
+            echo "ingests the record on one click — no GitHub login required."
+            echo
+            echo "Without Feishu configured, run the **Radar Data Pipeline** workflow manually"
+            echo "(Actions → Run workflow) with \`tweet_text\`, \`tweet_url\`, \`tweet_at\` and"
+            echo "\`tweet_type\` filled in."
+            echo
+            echo "If the report is wrong, just close this issue."
             echo
             echo "## Why this is not automatic"
             echo "Handing the write path to upstream means one unilateral edit on their side"
             echo "enters git history and shifts every historical statistic derived from it,"
             echo "with no clean way back. Delay is acceptable here; a wrong fact is not."
+            echo
+            echo "<!-- pending-ids: $IDS -->"
           } > issue-body.md
 
-          gh issue create --title "$TITLE" --body-file issue-body.md
+          if [ -n "$EXISTING" ]; then
+            gh issue edit "$EXISTING" --body-file issue-body.md
+            echo "Refreshed issue #$EXISTING."
+          else
+            gh issue create --title "$TITLE" --body-file issue-body.md
+          fi
+
+          echo "notify=$([ "$NOTIFY" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "New since last notification: $NOTIFY"
+
+      - name: Notify Feishu
+        if: steps.probe.outputs.exit_code == '3' && steps.confirm.outputs.notify == 'true'
+        run: |
+          if [ -z "$FEISHU_WEBHOOK_URL" ]; then
+            echo "FEISHU_WEBHOOK_URL is not configured; skipping."
+            echo "The confirmation issue above is the fallback — nothing is lost."
+            exit 0
+          fi
+          node scripts/notify-feishu.mjs probe.json
 
       - name: Ingest human-confirmed record
         if: github.event.inputs.tweet_text != ''
@@ -132,6 +202,7 @@ jobs:
             --add-tweet "${{ github.event.inputs.tweet_text }}" \
             --url "${{ github.event.inputs.tweet_url }}" \
             --at "${{ github.event.inputs.tweet_at }}" \
+            --id "${{ github.event.inputs.tweet_id }}" \
             --type "${{ github.event.inputs.tweet_type }}"
 
       - name: Commit confirmed data changes
