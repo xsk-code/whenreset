@@ -19,6 +19,8 @@ import {
   subscribeEmail,
   DEFAULT_THRESHOLD,
 } from "@/lib/notify";
+import { trackEvent } from "@/lib/analytics";
+import { ANALYTICS_EVENTS, ANALYTICS_STATUS } from "@/lib/analytics-events";
 
 interface AlertModalProps {
   isOpen: boolean;
@@ -56,6 +58,9 @@ export const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, lang })
   const handleTestBark = async () => {
     if (!barkKey.trim()) {
       setBarkTestStatus("empty");
+      trackEvent(ANALYTICS_EVENTS.ALERT_BARK_TEST_SUBMITTED, {
+        status: ANALYTICS_STATUS.EMPTY,
+      });
       return;
     }
     setBarkTestStatus("sending");
@@ -70,12 +75,18 @@ export const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, lang })
         : "If you see this, the iOS high-priority channel works.",
     });
     setBarkTestStatus(result.ok ? "success" : "error");
+    trackEvent(ANALYTICS_EVENTS.ALERT_BARK_TEST_SUBMITTED, {
+      status: result.ok ? ANALYTICS_STATUS.SUCCESS : ANALYTICS_STATUS.ERROR,
+    });
     setTimeout(() => setBarkTestStatus(null), 4000);
   };
 
   const handleSaveWebhook = async () => {
     if (!webhookUrl.trim()) {
       setWebhookStatus("empty");
+      trackEvent(ANALYTICS_EVENTS.ALERT_WEBHOOK_SUBMITTED, {
+        status: ANALYTICS_STATUS.EMPTY,
+      });
       return;
     }
     setWebhookStatus("sending");
@@ -89,12 +100,18 @@ export const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, lang })
         : "Channel verified. Reset signals will be posted here.",
     });
     setWebhookStatus(result.ok ? "success" : "error");
+    trackEvent(ANALYTICS_EVENTS.ALERT_WEBHOOK_SUBMITTED, {
+      status: result.ok ? ANALYTICS_STATUS.SUCCESS : ANALYTICS_STATUS.ERROR,
+    });
     setTimeout(() => setWebhookStatus(null), 4000);
   };
 
   const handleSaveEmail = async () => {
     if (!email.trim()) {
       setEmailStatus("empty");
+      trackEvent(ANALYTICS_EVENTS.EMAIL_SUBSCRIBE_SUBMITTED, {
+        status: ANALYTICS_STATUS.EMPTY,
+      });
       return;
     }
     setEmailStatus("sending");
@@ -102,10 +119,21 @@ export const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, lang })
     if (result.ok) {
       saveAlertConfig({ email: email.trim(), threshold });
       setEmailStatus("success");
+      // The email address itself is deliberately not reported — only that the
+      // subscription succeeded. See src/lib/analytics-events.ts.
+      trackEvent(ANALYTICS_EVENTS.EMAIL_SUBSCRIBE_SUBMITTED, {
+        status: ANALYTICS_STATUS.SUCCESS,
+      });
     } else if (result.configured === false) {
       setEmailStatus("unconfigured");
+      trackEvent(ANALYTICS_EVENTS.EMAIL_SUBSCRIBE_SUBMITTED, {
+        status: ANALYTICS_STATUS.UNCONFIGURED,
+      });
     } else {
       setEmailStatus("error");
+      trackEvent(ANALYTICS_EVENTS.EMAIL_SUBSCRIBE_SUBMITTED, {
+        status: ANALYTICS_STATUS.ERROR,
+      });
     }
     setTimeout(() => setEmailStatus(null), 5000);
   };

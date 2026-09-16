@@ -1,11 +1,16 @@
 import { track } from "@vercel/analytics";
+import type { AnalyticsEvent } from "./analytics-events";
 
 /**
  * Universal event tracker for WhenReset.
  * Supports Vercel Analytics custom events with safe SSR guards and dev logging.
+ *
+ * `eventName` is intentionally typed as `AnalyticsEvent` rather than `string`:
+ * the union lives in `analytics-events.ts`, so a typo at a call site is a
+ * compile error instead of an event that silently never matches anything.
  */
 export function trackEvent(
-  eventName: string,
+  eventName: AnalyticsEvent,
   properties?: Record<string, string | number | boolean | null | undefined>
 ) {
   if (typeof window === "undefined") return;

@@ -3,6 +3,8 @@
 import React from "react";
 import { SITE_CONFIG } from "@/lib/config";
 import { Terminal, Code2, ExternalLink } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 interface FooterProps {
   lang: "en" | "zh";
@@ -38,6 +40,7 @@ export const Footer: React.FC<FooterProps> = ({ lang, lastSyncTime }) => {
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-400">
             <a
               href="/api/calendar.ics"
+              onClick={() => trackEvent(ANALYTICS_EVENTS.CALENDAR_SUBSCRIBE_CLICKED)}
               className="hover:text-emerald-400 transition-colors flex items-center space-x-1"
             >
               <span>{isZh ? "日历订阅 (.ics)" : "Calendar (.ics)"}</span>
@@ -47,6 +50,7 @@ export const Footer: React.FC<FooterProps> = ({ lang, lastSyncTime }) => {
               href="/api/resets"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackEvent(ANALYTICS_EVENTS.API_JSON_OPENED)}
               className="hover:text-emerald-400 transition-colors flex items-center space-x-1"
             >
               <Code2 className="h-3.5 w-3.5" />
@@ -57,6 +61,7 @@ export const Footer: React.FC<FooterProps> = ({ lang, lastSyncTime }) => {
               href="https://x.com/thsottiaux"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackEvent(ANALYTICS_EVENTS.TIBO_PROFILE_OPENED)}
               className="hover:text-emerald-400 transition-colors flex items-center space-x-1"
             >
               <span>@thsottiaux on X</span>

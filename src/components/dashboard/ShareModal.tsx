@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
 import { X, Copy, Download, Check, Sparkles } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/config";
+import { trackEvent } from "@/lib/analytics";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -217,6 +219,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       setDownloaded(true);
+      trackEvent(ANALYTICS_EVENTS.SHARE_POSTER_DOWNLOADED, {
+        likelihood: Math.round(likelihood),
+        lang,
+      });
       setTimeout(() => setDownloaded(false), 2500);
     }, "image/png");
   };
@@ -227,6 +233,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         `${domain} - ${isZh ? "OpenAI Codex 额度重置预测" : "OpenAI Codex quota reset forecast"}: ${likelihood}%`
       );
       setCopied(true);
+      trackEvent(ANALYTICS_EVENTS.SHARE_TEXT_COPIED, {
+        likelihood: Math.round(likelihood),
+        lang,
+      });
       setTimeout(() => setCopied(false), 2000);
     }
   };
